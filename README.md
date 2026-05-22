@@ -129,4 +129,4 @@ Acceptance criterion for the whole project: a recruiter can `git clone`, `./juic
 
 ## Legal & scope
 
-All testing is performed against software the author owns and operates locally. Juice Shop is published by OWASP as an intentionally vulnerable training target. No third-party systems are touched at any point. The full statement is in [00-scope.md](00-scope.md) §2.
+All testing is performed against software the author owns and operates locally. Juice Shop is published by OWASP as an intentionally vulnerable training target. No third-party systems are touched at any point.
