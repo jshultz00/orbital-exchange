@@ -1,10 +1,8 @@
 # vulnscope
 
-> A small, deliberately readable Go scanner that detects a defined subset of the OWASP Top 10 (2021) against a local OWASP Juice Shop instance — built end-to-end as a learning project and consultant-style portfolio piece.
+> A small, deliberately readable Go scanner that detects a defined subset of the OWASP Top 10 (2021) against a local OWASP Juice Shop instance.
 
-`vulnscope` is the executable half of an engagement; the other half is a hand-written assessment report. The whole repository — scanner code, methodology notes, and findings — is structured so it reads like a real consulting deliverable rather than a "look I wrote a scanner" demo.
-
-See [00-scope.md](00-scope.md) for the rules of engagement, [COVERAGE.md](COVERAGE.md) for what the scanner does and does not attempt, and [METHODOLOGY.md](METHODOLOGY.md) for the detection logic of every check.
+See [COVERAGE.md](COVERAGE.md) for what the scanner does and does not attempt and [METHODOLOGY.md](METHODOLOGY.md) for the detection logic of every check.
 
 ---
 
