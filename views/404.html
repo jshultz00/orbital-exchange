@@ -1,0 +1,15 @@
+{{define "content"}}
+<section class="panel">
+    <p class="panel-title">Comms Channel // 404</p>
+    <h1>Signal lost.</h1>
+    <p class="readout">
+        The requested route is not on station charts.
+        <span class="mono muted">REQUESTED:</span> <code class="mono amber">{{.Path}}</code>
+    </p>
+    <p class="readout muted">
+        Try the <a href="/">station bulletin</a>, the
+        <a href="/catalog">commissary catalog</a>, or the
+        <a href="/tracker">vulnerability tracker</a>.
+    </p>
+</section>
+{{end}}

@@ -1,0 +1,32 @@
+{{define "content"}}
+<section class="panel">
+    <p class="panel-title">Commissary Inventory</p>
+    <h1>Catalog</h1>
+    <p class="readout">
+        Allocations are rationed per cycle. Quantities and pricing subject to
+        Station Command discretion. Place items in your cart for fulfillment
+        from the storage bay.
+    </p>
+</section>
+
+{{range .Sections}}
+<section class="panel">
+    <p class="panel-title">{{.Title}}</p>
+    <div class="product-grid">
+        {{range .Products}}
+        <a class="product-card" href="/catalog/{{.Slug}}">
+            <div class="product-card-header">
+                <span class="product-name">{{.Name}}</span>
+                <span class="product-price mono">{{.Price}} cr</span>
+            </div>
+            <p class="product-desc">{{.Description}}</p>
+            <div class="product-meta mono">
+                <span>STOCK: {{.Stock}}</span>
+                <span class="muted">/{{.Category}}/</span>
+            </div>
+        </a>
+        {{end}}
+    </div>
+</section>
+{{end}}
+{{end}}

@@ -1,1 +1,19 @@
 _specs/
+
+# Runtime data (SQLite DB, WAL/SHM sidecars)
+data/
+*.sqlite
+*.sqlite-*
+
+# Build output
+bin/
+orbital-exchange
+
+# Local env overrides
+.env
+.env.local
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store

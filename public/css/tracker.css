@@ -1,0 +1,150 @@
+/* Orbital Exchange — tracker.css
+ * Tracker-page-specific styles. Loaded only on /tracker via the layout
+ * template's {{if .ExtraCSS}} slot.
+ */
+
+/* ---------- OVERVIEW PANEL ---------- */
+.tracker-overview h1 { margin-bottom: 0.4rem; }
+
+.tracker-progress {
+    margin: 1rem 0 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+.tracker-progress-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+}
+.tracker-progress-bar {
+    height: 10px;
+    background: var(--bg-deep);
+    border: 1px solid var(--panel-edge);
+    border-radius: 999px;
+    overflow: hidden;
+}
+.tracker-progress-bar.small { height: 5px; width: 80px; }
+.tracker-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--cyan-dim), var(--cyan));
+    transition: width 220ms ease;
+}
+
+/* ---------- FILTER CHIPS ---------- */
+.tracker-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.5rem;
+}
+.filter-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin-left: 0.5rem;
+}
+.filter-label:first-child { margin-left: 0; }
+
+.filter-chip {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    border: 1px solid var(--panel-edge);
+    color: var(--muted);
+    background: var(--bg-deep);
+    text-decoration: none;
+    transition: background 120ms, color 120ms, border-color 120ms;
+}
+.filter-chip:hover { color: var(--text); border-color: var(--cyan-dim); }
+.filter-chip.active {
+    background: var(--cyan-dim);
+    color: var(--bg);
+    border-color: var(--cyan);
+}
+/* Difficulty-tinted active states */
+.filter-chip.pill-easy.active   { background: var(--success); color: var(--bg); border-color: var(--success); }
+.filter-chip.pill-medium.active { background: var(--amber);   color: var(--bg); border-color: var(--amber); }
+.filter-chip.pill-hard.active   { background: var(--danger);  color: var(--bg); border-color: var(--danger); }
+.filter-chip.pill-discovered.active { background: var(--cyan); color: var(--bg); border-color: var(--cyan); }
+.filter-chip.pill-exploited.active  { background: var(--amber); color: var(--bg); border-color: var(--amber); }
+.filter-chip.pill-undiscovered.active { background: var(--muted); color: var(--bg); border-color: var(--muted); }
+
+.tracker-reset { margin-left: auto; margin-top: 0; }
+
+/* ---------- CATEGORY SECTION ---------- */
+.tracker-category-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.85rem;
+}
+.tracker-category-title {
+    margin: 0;
+    color: var(--amber);
+    font-size: 0.95rem;
+    letter-spacing: 0.04em;
+}
+.tracker-category-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-left: auto;
+    font-size: 0.85rem;
+}
+
+/* ---------- VULN ROWS ---------- */
+.tracker-rows {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+.tracker-row {
+    background: var(--bg-deep);
+    border: 1px solid var(--panel-edge);
+    border-left: 3px solid var(--panel-edge);
+    border-radius: var(--radius);
+    padding: 0.7rem 0.9rem 0.85rem;
+    position: relative;
+}
+.tracker-row-discovered { border-left-color: var(--cyan); }
+.tracker-row-exploited  { border-left-color: var(--amber); }
+
+.tracker-row header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.4rem;
+}
+.tracker-title {
+    font-family: var(--sans);
+    font-size: 0.95rem;
+    color: var(--text);
+    font-weight: 500;
+}
+.tracker-row header time { margin-left: auto; font-size: 0.75rem; }
+.tracker-desc {
+    margin: 0 0 0.45rem 0;
+    color: var(--muted);
+    font-size: 0.85rem;
+    line-height: 1.5;
+}
+.tracker-id {
+    font-size: 0.7rem;
+    opacity: 0.7;
+}
+
+.tracker-empty {
+    margin: 0.25rem 0;
+    font-size: 0.85rem;
+}

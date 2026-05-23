@@ -1,0 +1,74 @@
+{{define "content"}}
+<section class="panel tracker-overview">
+    <p class="panel-title">Vulnerability Tracker</p>
+    <h1>Training Registry</h1>
+    <p class="readout muted">
+        Every planted OWASP Top 10 (2021) vulnerability in this station is listed below.
+        Future increments plant exploits beneath each category; status flips to
+        <span class="pill pill-discovered">discovered</span> when a hidden flag is hit.
+    </p>
+
+    <div class="tracker-progress">
+        <div class="tracker-progress-meta mono">
+            <span><strong class="cyan">{{.TotalDone}}</strong> / {{.Total}} discovered</span>
+            <span class="muted">{{.Percent}}%</span>
+        </div>
+        <div class="tracker-progress-bar">
+            <div class="tracker-progress-fill" style="width: {{.Percent}}%;"></div>
+        </div>
+    </div>
+
+    <div class="tracker-filters">
+        <span class="filter-label mono">DIFFICULTY</span>
+        <a class="filter-chip{{if eq .Difficulty ""}} active{{end}}" href="/tracker?status={{.Status}}">All</a>
+        <a class="filter-chip pill-easy{{if eq .Difficulty "easy"}} active{{end}}" href="/tracker?difficulty=easy&status={{.Status}}">Easy</a>
+        <a class="filter-chip pill-medium{{if eq .Difficulty "medium"}} active{{end}}" href="/tracker?difficulty=medium&status={{.Status}}">Medium</a>
+        <a class="filter-chip pill-hard{{if eq .Difficulty "hard"}} active{{end}}" href="/tracker?difficulty=hard&status={{.Status}}">Hard</a>
+
+        <span class="filter-label mono">STATUS</span>
+        <a class="filter-chip{{if eq .Status ""}} active{{end}}" href="/tracker?difficulty={{.Difficulty}}">All</a>
+        <a class="filter-chip pill-undiscovered{{if eq .Status "undiscovered"}} active{{end}}" href="/tracker?difficulty={{.Difficulty}}&status=undiscovered">Undiscovered</a>
+        <a class="filter-chip pill-discovered{{if eq .Status "discovered"}} active{{end}}" href="/tracker?difficulty={{.Difficulty}}&status=discovered">Discovered</a>
+        <a class="filter-chip pill-exploited{{if eq .Status "exploited"}} active{{end}}" href="/tracker?difficulty={{.Difficulty}}&status=exploited">Exploited</a>
+
+        {{if and .User .User.IsAdmin}}
+        <form method="POST" action="/tracker/reset" class="tracker-reset" onsubmit="return confirm('Reset all tracker entries to undiscovered? This does not affect users, cart, or comms.');">
+            <button class="btn btn-danger" type="submit">Reset Progress</button>
+        </form>
+        {{end}}
+    </div>
+</section>
+
+{{range .Sections}}
+<section class="panel tracker-category" id="{{.ID}}">
+    <header class="tracker-category-header">
+        <h2 class="tracker-category-title mono">{{.Name}}</h2>
+        <div class="tracker-category-meta mono">
+            <span><strong class="cyan">{{.Done}}</strong> / {{.Total}}</span>
+            <div class="tracker-progress-bar small">
+                <div class="tracker-progress-fill" style="width: {{.Percent}}%;"></div>
+            </div>
+        </div>
+    </header>
+
+    {{if .Rows}}
+    <ul class="tracker-rows">
+        {{range .Rows}}
+        <li class="tracker-row tracker-row-{{.Status}}">
+            <header>
+                <span class="tracker-title">{{.Title}}</span>
+                <span class="pill pill-{{.Difficulty}}">{{.Difficulty}}</span>
+                <span class="pill pill-{{.Status}}">{{.Status}}</span>
+                {{if .DiscoveredAt}}<time class="mono muted">{{.DiscoveredAt}}</time>{{end}}
+            </header>
+            <p class="tracker-desc">{{.Description}}</p>
+            <div class="tracker-id mono muted">{{.ID}}</div>
+        </li>
+        {{end}}
+    </ul>
+    {{else}}
+    <p class="readout muted tracker-empty">No entries match the current filter for this category.</p>
+    {{end}}
+</section>
+{{end}}
+{{end}}

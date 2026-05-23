@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{if .Title}}{{.Title}} // {{end}}Orbital Exchange</title>
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <link rel="stylesheet" href="/static/css/theme.css">
+    {{if .ExtraCSS}}<link rel="stylesheet" href="{{.ExtraCSS}}">{{end}}
+</head>
+<body>
+    <div class="starfield" aria-hidden="true"></div>
+
+    <header class="site-header">
+        <div class="brand">
+            <span class="brand-prompt">&gt;</span>
+            <span class="brand-name">ORBITAL EXCHANGE</span>
+            <span class="brand-sub">// CREW COMMISSARY</span>
+        </div>
+        <nav class="site-nav">
+            <a href="/">BULLETIN</a>
+            <a href="/catalog">CATALOG</a>
+            <a href="/cart">CART</a>
+            <a href="/comms">COMMS LOG</a>
+            <a href="/tracker">TRACKER</a>
+            {{if and .User .User.IsAdmin}}<a href="/command" class="nav-admin">COMMAND</a>{{end}}
+            {{if .User}}
+                <span class="nav-user">
+                    <span class="mono">[{{.User.Username}}]</span>
+                    <form method="POST" action="/logout"><button type="submit">SIGN OUT</button></form>
+                </span>
+            {{else}}
+                <a href="/login" class="nav-auth">SIGN IN</a>
+                <a href="/register" class="nav-auth">REGISTER</a>
+            {{end}}
+        </nav>
+    </header>
+
+    <main class="site-main">
+        {{if .Flash}}<div class="flash">{{.Flash}}</div>{{end}}
+        {{template "content" .}}
+    </main>
+
+    <footer class="site-footer">
+        <span class="footer-blink">&#9608;</span>
+        <span>ORBITAL EXCHANGE TERMINAL v0.1 // LOCAL ONLY // {{.Year}}</span>
+        <span class="footer-meta">UNCLASSIFIED // TRAINING ENVIRONMENT</span>
+    </footer>
+</body>
+</html>

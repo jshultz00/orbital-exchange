@@ -1,0 +1,46 @@
+{{define "content"}}
+<section class="panel">
+    <p class="panel-title">Crew Comms Log</p>
+    <h1>Post a message.</h1>
+    <p class="readout muted">
+        Open channel. Messages are visible to all crew and to Station Command.
+        Anonymous transmissions are permitted; authed crew sign automatically.
+    </p>
+
+    <form class="comms-form" method="POST" action="/comms">
+        {{if not .User}}
+        <label>Callsign (optional)
+            <input type="text" name="author" maxlength="64" placeholder="Anonymous Crew">
+        </label>
+        {{else}}
+        <p class="readout">Posting as <span class="mono amber">{{.User.Username}}</span>.</p>
+        {{end}}
+        <label>Message
+            <textarea name="body" rows="4" maxlength="2000" required placeholder="Transmit..."></textarea>
+        </label>
+        <div>
+            <button class="btn" type="submit">Transmit</button>
+        </div>
+    </form>
+</section>
+
+<section class="panel">
+    <p class="panel-title">Recent Transmissions</p>
+    {{if .Entries}}
+    <ul class="comms-entries">
+        {{range .Entries}}
+        <li class="comms-entry{{if .FromCrew}} comms-entry-crew{{end}}">
+            <header>
+                <span class="mono amber">{{.Author}}</span>
+                {{if .FromCrew}}<span class="pill pill-discovered">CREW</span>{{end}}
+                <time class="mono muted">{{.CreatedAt}}</time>
+            </header>
+            <p class="comms-body">{{.Body}}</p>
+        </li>
+        {{end}}
+    </ul>
+    {{else}}
+    <p class="readout muted">No transmissions on record. Be the first.</p>
+    {{end}}
+</section>
+{{end}}

@@ -1,0 +1,82 @@
+[
+  {
+    "slug": "ration-pack-alpha",
+    "name": "Ration Pack - Alpha",
+    "category": "ration",
+    "description": "Standard-issue 1200kcal meal pack. Reconstitutes in 90 seconds with reclaimed water. Flavor profile: tomato-something.",
+    "price": 12,
+    "stock": 84
+  },
+  {
+    "slug": "ration-pack-omega",
+    "name": "Ration Pack - Omega",
+    "category": "ration",
+    "description": "Premium 1800kcal meal pack with actual chocolate analogue. Crew morale officer's recommendation.",
+    "price": 28,
+    "stock": 22
+  },
+  {
+    "slug": "oxygen-canister-standard",
+    "name": "Oxygen Canister - Standard",
+    "category": "oxygen",
+    "description": "4-hour O2 reserve, pressure-rated for EVA. Inspect the seal before deployment.",
+    "price": 45,
+    "stock": 60
+  },
+  {
+    "slug": "oxygen-canister-extended",
+    "name": "Oxygen Canister - Extended",
+    "category": "oxygen",
+    "description": "12-hour O2 reserve. Heavier; advised for long-range salvage runs and contingency caches.",
+    "price": 110,
+    "stock": 18
+  },
+  {
+    "slug": "water-recycler-filter",
+    "name": "Water Recycler Filter",
+    "category": "consumable",
+    "description": "Replacement cartridge for the crew-deck recycler. Rated for 90 cycles or 2000 liters.",
+    "price": 35,
+    "stock": 40
+  },
+  {
+    "slug": "thermal-blanket",
+    "name": "Emergency Thermal Blanket",
+    "category": "consumable",
+    "description": "Mylar foil, single-use. Reflects ~80% of body heat. Folds to the size of a credit chip.",
+    "price": 8,
+    "stock": 200
+  },
+  {
+    "slug": "salvage-circuit-board",
+    "name": "Salvage Circuit Board",
+    "category": "salvage",
+    "description": "Unverified provenance. Pinout undocumented. Sold as-is; the engineering team has thoughts.",
+    "price": 18,
+    "stock": 12
+  },
+  {
+    "slug": "salvage-hull-plate",
+    "name": "Salvage Hull Plate (Class III)",
+    "category": "salvage",
+    "description": "Composite plating, ~1.2m square. Pitting consistent with micrometeorite contact. Reusable with prep.",
+    "price": 75,
+    "stock": 6
+  },
+  {
+    "slug": "medkit-class-i",
+    "name": "Medkit - Class I",
+    "category": "medical",
+    "description": "Basic first-response kit: trauma shears, hemostatic gauze, 6 doses of broad-spectrum analgesic.",
+    "price": 55,
+    "stock": 30
+  },
+  {
+    "slug": "vac-duct-tape",
+    "name": "Vac-Grade Duct Tape",
+    "category": "tool",
+    "description": "Holds in vacuum. Holds in heat. Holds in despair. 25m roll. The most-requisitioned item aboard.",
+    "price": 6,
+    "stock": 500
+  }
+]

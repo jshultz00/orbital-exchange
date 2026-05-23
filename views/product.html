@@ -1,0 +1,27 @@
+{{define "content"}}
+{{with .Product}}
+<section class="panel">
+    <p class="panel-title">Item Record // /{{.Category}}/</p>
+    <h1>{{.Name}}</h1>
+    <p class="readout">{{.Description}}</p>
+
+    <dl class="product-record mono">
+        <dt>Item ID</dt>
+        <dd>{{.Slug}}</dd>
+        <dt>Category</dt>
+        <dd>{{.Category}}</dd>
+        <dt>Unit Price</dt>
+        <dd>{{.Price}} credits</dd>
+        <dt>Bay Stock</dt>
+        <dd>{{.Stock}}</dd>
+    </dl>
+
+    <form class="product-actions" method="POST" action="/cart">
+        <input type="hidden" name="product_id" value="{{.ID}}">
+        <label class="mono muted">QTY <input type="number" name="qty" value="1" min="1" max="{{.Stock}}" style="width:5rem;"></label>
+        <button class="btn" type="submit">Add to Cart</button>
+        <a class="btn btn-cyan" href="/catalog">&larr; Back to Catalog</a>
+    </form>
+</section>
+{{end}}
+{{end}}
