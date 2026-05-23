@@ -1,6 +1,6 @@
 # Orbital Exchange
 
-A purposefully vulnerable Juice-Shop-style web app for self-directed OWASP Top 10 practice. Themed as a deep-space station commissary in the *Project Hail Mary* movie aesthetic — utilitarian retro-future panels, monospace readouts, amber/cyan CRT accents.
+A purposefully vulnerable Juice-Shop-style web app for self-directed OWASP Top 10 practice. Themed as a deep-space station commissary — utilitarian retro-future panels, monospace readouts, amber/cyan CRT accents.
 
 **This is a local-only training target. Do not expose it to the internet.**
 

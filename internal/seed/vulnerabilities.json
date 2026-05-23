@@ -5,7 +5,8 @@
     "title": "Override the airlock manifest",
     "description": "Station Command's manifest endpoint exposes records by ID without checking who's asking. View a manifest entry that isn't yours.",
     "difficulty": "easy",
-    "sort_order": 10
+    "sort_order": 10,
+    "is_planted": true
   },
   {
     "id": "a01-crew-roster-idor",
@@ -105,7 +106,8 @@
     "title": "Pry open the diagnostics panel",
     "description": "A debug-only route was never removed from production. Find it and read what it reveals.",
     "difficulty": "easy",
-    "sort_order": 10
+    "sort_order": 10,
+    "is_planted": true
   },
   {
     "id": "a05-default-station-credentials",

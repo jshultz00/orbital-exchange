@@ -21,6 +21,7 @@
             <a href="/">BULLETIN</a>
             <a href="/catalog">CATALOG</a>
             <a href="/cart">CART</a>
+            {{if .User}}<a href="/manifest">MANIFEST</a>{{end}}
             <a href="/comms">COMMS LOG</a>
             <a href="/tracker">TRACKER</a>
             {{if and .User .User.IsAdmin}}<a href="/command" class="nav-admin">COMMAND</a>{{end}}

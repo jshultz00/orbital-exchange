@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	// modernc.org/sqlite registers a pure-Go "sqlite" driver via database/sql.
 	// No CGO required, so builds stay simple. The blank import is for the
@@ -47,5 +48,28 @@ func Open(path string) (*sql.DB, error) {
 		return nil, fmt.Errorf("apply schema: %w", err)
 	}
 
+	if err := migrate(conn); err != nil {
+		_ = conn.Close()
+		return nil, fmt.Errorf("migrate: %w", err)
+	}
+
 	return conn, nil
+}
+
+// migrate runs idempotent ALTERs that bring older databases up to the current
+// schema. CREATE TABLE IF NOT EXISTS in schema.sql cannot add columns to an
+// existing table, so any column added after first release ships here too.
+//
+// Each ALTER is run with its "duplicate column" error treated as success, so
+// the function is safe to run on every boot.
+func migrate(conn *sql.DB) error {
+	alters := []string{
+		`ALTER TABLE vulnerabilities ADD COLUMN is_planted INTEGER NOT NULL DEFAULT 0`,
+	}
+	for _, stmt := range alters {
+		if _, err := conn.Exec(stmt); err != nil && !strings.Contains(err.Error(), "duplicate column") {
+			return fmt.Errorf("%s: %w", stmt, err)
+		}
+	}
+	return nil
 }

@@ -75,6 +75,10 @@ func main() {
 	mux.HandleFunc("POST /cart", cart.Add)
 	mux.HandleFunc("POST /cart/{product_id}/remove", cart.Remove)
 
+	manifest := &handlers.Manifest{DB: conn, Views: v, Session: sess}
+	mux.HandleFunc("GET /manifest", manifest.Index)
+	mux.HandleFunc("GET /manifest/{id}", manifest.Detail)
+
 	comms := &handlers.Comms{DB: conn, Views: v, Session: sess}
 	mux.HandleFunc("GET /comms", comms.List)
 	mux.HandleFunc("POST /comms", comms.Submit)
@@ -86,6 +90,11 @@ func main() {
 	mux.HandleFunc("GET /tracker", tracker.View)
 	mux.HandleFunc("POST /tracker/reset", tracker.Reset)
 	mux.HandleFunc("POST /tracker/{id}/discover", tracker.Discover)
+
+	// Planted vuln a05-diagnostics-panel-exposed: a debug route deliberately
+	// shipped with no auth gate. Discovery flips the tracker row on first hit.
+	debug := &handlers.Debug{DB: conn, Views: v, Session: sess}
+	mux.HandleFunc("GET /debug", debug.Panel)
 
 	// sess.LoadAndSave is the session middleware: it loads any existing
 	// session for the request, makes session methods callable inside handlers

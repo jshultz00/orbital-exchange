@@ -1,0 +1,41 @@
+{{define "content"}}
+<section class="panel">
+    <p class="panel-title">Manifest #{{.Manifest.ID}} // Airlock Controller</p>
+    <h1>{{.Manifest.Summary}}</h1>
+    <p class="readout muted">
+        Issued to <span class="mono">{{.Manifest.OwnerName}}</span> on {{.Manifest.CreatedAt}}.
+        {{if not .IsOwner}}<span class="amber">// VIEWING ANOTHER CREW MEMBER'S RECORD</span>{{end}}
+    </p>
+
+    <table class="cart-table mono">
+        <thead>
+            <tr>
+                <th>Item</th>
+                <th class="num">Qty</th>
+                <th class="num">Unit</th>
+                <th class="num">Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{range .Manifest.Items}}
+            <tr>
+                <td>{{.Name}}</td>
+                <td class="num">{{.Qty}}</td>
+                <td class="num">{{.UnitPrice}} cr</td>
+                <td class="num">{{.Subtotal}} cr</td>
+            </tr>
+            {{end}}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="3" class="num muted">TOTAL</td>
+                <td class="num amber"><strong>{{.Manifest.TotalCredits}} cr</strong></td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <div class="cart-actions">
+        <a class="btn btn-cyan" href="/manifest">&larr; My Manifests</a>
+    </div>
+</section>
+{{end}}

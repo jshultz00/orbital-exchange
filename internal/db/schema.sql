@@ -44,6 +44,22 @@ CREATE TABLE IF NOT EXISTS comms_entries (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Crew supply manifests. One row per requisition receipt. Items are stored
+-- as a small JSON blob — manifests are read-only artifacts so a relational
+-- line table would be overkill for the training scenario.
+--
+-- Planted vuln a01-airlock-manifest-override: the GET /manifest/{id} handler
+-- looks rows up by id alone, with no ownership check. IDOR by design.
+CREATE TABLE IF NOT EXISTS manifests (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id       INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    summary       TEXT    NOT NULL, -- e.g. "Cycle 412 ration draw"
+    items_json    TEXT    NOT NULL, -- JSON array: [{name, qty, unit_price}, ...]
+    total_credits INTEGER NOT NULL,
+    created_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS manifests_user_idx ON manifests(user_id);
+
 -- Vulnerability tracker schema.
 --
 -- Two tables: categories (the 10 OWASP 2021 buckets) and vulnerabilities
@@ -68,7 +84,11 @@ CREATE TABLE IF NOT EXISTS vulnerabilities (
         CHECK (status IN ('undiscovered', 'discovered', 'exploited')),
     discovered_at  TIMESTAMP NULL,
     notes          TEXT    NULL,
-    sort_order     INTEGER NOT NULL DEFAULT 0            -- sort within category
+    sort_order     INTEGER NOT NULL DEFAULT 0,           -- sort within category
+    -- is_planted gates UI visibility: only rows with is_planted = 1 appear on
+    -- /tracker. Unplanted slots stay in JSON as the roadmap but are hidden
+    -- from the crew until the matching exploit is actually wired up.
+    is_planted     INTEGER NOT NULL DEFAULT 0 CHECK (is_planted IN (0, 1))
 );
 CREATE INDEX IF NOT EXISTS vulnerabilities_category_idx ON vulnerabilities(category_id, sort_order);
 CREATE INDEX IF NOT EXISTS vulnerabilities_status_idx   ON vulnerabilities(status);

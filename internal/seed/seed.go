@@ -55,6 +55,10 @@ type vulnerability struct {
 	Description string `json:"description"`
 	Difficulty  string `json:"difficulty"`
 	SortOrder   int    `json:"sort_order"`
+	// IsPlanted gates whether this slot appears on /tracker. Defaults to
+	// false (omitted) for roadmap rows; flip to true in JSON when the
+	// matching exploit is actually wired into a handler.
+	IsPlanted bool `json:"is_planted,omitempty"`
 }
 
 type product struct {
@@ -85,6 +89,9 @@ func All(conn *sql.DB) error {
 		return err
 	}
 	if err := users(tx); err != nil {
+		return err
+	}
+	if err := manifests(tx); err != nil {
 		return err
 	}
 
@@ -122,22 +129,28 @@ func vulnerabilities(tx *sql.Tx) error {
 
 	// ON CONFLICT(id) DO UPDATE refreshes the descriptive columns from JSON
 	// but deliberately omits status/discovered_at/notes so a re-seed never
-	// resets crew progress.
+	// resets crew progress. is_planted IS refreshed from JSON: it's a code-
+	// level fact (does the exploit exist?), not crew progress.
 	const stmt = `
-		INSERT INTO vulnerabilities (id, category_id, title, description, difficulty, sort_order)
-		VALUES (?, ?, ?, ?, ?, ?)
+		INSERT INTO vulnerabilities (id, category_id, title, description, difficulty, sort_order, is_planted)
+		VALUES (?, ?, ?, ?, ?, ?, ?)
 		ON CONFLICT(id) DO UPDATE SET
 			category_id = excluded.category_id,
 			title       = excluded.title,
 			description = excluded.description,
 			difficulty  = excluded.difficulty,
-			sort_order  = excluded.sort_order
+			sort_order  = excluded.sort_order,
+			is_planted  = excluded.is_planted
 	`
 	for _, v := range rows {
 		if v.Difficulty == "" {
 			v.Difficulty = "medium"
 		}
-		if _, err := tx.Exec(stmt, v.ID, v.CategoryID, v.Title, v.Description, v.Difficulty, v.SortOrder); err != nil {
+		planted := 0
+		if v.IsPlanted {
+			planted = 1
+		}
+		if _, err := tx.Exec(stmt, v.ID, v.CategoryID, v.Title, v.Description, v.Difficulty, v.SortOrder, planted); err != nil {
 			return fmt.Errorf("seed vuln %q: %w", v.ID, err)
 		}
 	}
@@ -171,6 +184,66 @@ func users(tx *sql.Tx) error {
 			u.Username, string(hash), admin,
 		); err != nil {
 			return fmt.Errorf("seed user %q insert: %w", u.Username, err)
+		}
+	}
+	return nil
+}
+
+// defaultManifests are seeded once per user. Idempotent: if the user already
+// has any manifest row we skip seeding theirs entirely, so manifests created
+// at runtime aren't disturbed and the seed values don't keep duplicating on
+// reboot.
+//
+// Planted vuln a01-airlock-manifest-override depends on these rows existing:
+// crew see their own at /manifest, can guess sequential IDs, and pull
+// someone else's via /manifest/{id} because the lookup ignores ownership.
+var defaultManifests = []struct {
+	Username     string
+	Summary      string
+	ItemsJSON    string
+	TotalCredits int
+}{
+	{
+		Username:     "command",
+		Summary:      "Cycle 411 // Station Command ration draw",
+		ItemsJSON:    `[{"name":"Bridge ration pack","qty":4,"unit_price":85},{"name":"Stim coffee, dark","qty":2,"unit_price":40}]`,
+		TotalCredits: 420,
+	},
+	{
+		Username:     "command",
+		Summary:      "Cycle 412 // Engineering supply pull",
+		ItemsJSON:    `[{"name":"Salvage cell, charged","qty":3,"unit_price":210},{"name":"Hull patch tape","qty":5,"unit_price":35}]`,
+		TotalCredits: 805,
+	},
+	{
+		Username:     "ryland",
+		Summary:      "Cycle 412 // Crew ration draw",
+		ItemsJSON:    `[{"name":"Standard ration pack","qty":7,"unit_price":55},{"name":"Oxygen canister, half","qty":1,"unit_price":120}]`,
+		TotalCredits: 505,
+	},
+}
+
+func manifests(tx *sql.Tx) error {
+	for _, m := range defaultManifests {
+		var userID int64
+		err := tx.QueryRow(`SELECT id FROM users WHERE username = ?`, m.Username).Scan(&userID)
+		if err != nil {
+			return fmt.Errorf("seed manifest lookup user %q: %w", m.Username, err)
+		}
+
+		var existing int
+		if err := tx.QueryRow(`SELECT COUNT(*) FROM manifests WHERE user_id = ? AND summary = ?`, userID, m.Summary).Scan(&existing); err != nil {
+			return fmt.Errorf("seed manifest count %q: %w", m.Summary, err)
+		}
+		if existing > 0 {
+			continue
+		}
+
+		if _, err := tx.Exec(
+			`INSERT INTO manifests (user_id, summary, items_json, total_credits) VALUES (?, ?, ?, ?)`,
+			userID, m.Summary, m.ItemsJSON, m.TotalCredits,
+		); err != nil {
+			return fmt.Errorf("seed manifest insert %q: %w", m.Summary, err)
 		}
 	}
 	return nil

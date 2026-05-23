@@ -71,6 +71,11 @@ func (t *Tracker) View(w http.ResponseWriter, r *http.Request) {
 	totalDone, total := 0, 0
 	sections := make([]CategorySummary, 0, len(cats))
 	for _, c := range cats {
+		// Skip categories with no planted rows so the page reflects what
+		// crew can actually exercise today, not the entire OWASP roadmap.
+		if c.Total == 0 {
+			continue
+		}
 		c.Rows = byCat[c.ID]
 		sections = append(sections, c)
 		totalDone += c.Done
@@ -155,12 +160,16 @@ func (t *Tracker) flash(r *http.Request, msg string) {
 }
 
 func (t *Tracker) loadCategories() ([]CategorySummary, error) {
+	// Only planted vulns count toward the per-category totals; unplanted
+	// roadmap rows are hidden from the UI, so including them would lie
+	// about the work that's actually available.
 	const q = `
 		SELECT c.id, c.name,
 		       COUNT(v.id),
 		       COALESCE(SUM(CASE WHEN v.status IN ('discovered','exploited') THEN 1 ELSE 0 END), 0)
 		FROM categories c
-		LEFT JOIN vulnerabilities v ON v.category_id = c.id
+		LEFT JOIN vulnerabilities v
+		       ON v.category_id = c.id AND v.is_planted = 1
 		GROUP BY c.id, c.name, c.sort_order
 		ORDER BY c.sort_order
 	`
@@ -190,8 +199,10 @@ func (t *Tracker) loadVulns(difficulty, status string) ([]VulnRow, error) {
 		       COALESCE(strftime('%Y-%m-%d %H:%M', discovered_at), '')
 		FROM vulnerabilities
 	`
+	// Always filter to planted rows; the unplanted ones are roadmap-only
+	// and must never appear on /tracker.
+	wheres := []string{"is_planted = 1"}
 	var args []any
-	var wheres []string
 	if difficulty != "" {
 		wheres = append(wheres, "difficulty = ?")
 		args = append(args, difficulty)
@@ -200,9 +211,7 @@ func (t *Tracker) loadVulns(difficulty, status string) ([]VulnRow, error) {
 		wheres = append(wheres, "status = ?")
 		args = append(args, status)
 	}
-	if len(wheres) > 0 {
-		q += " WHERE " + strings.Join(wheres, " AND ")
-	}
+	q += " WHERE " + strings.Join(wheres, " AND ")
 	q += " ORDER BY category_id, sort_order"
 
 	rows, err := t.DB.Query(q, args...)
