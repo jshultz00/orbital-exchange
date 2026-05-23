@@ -50,6 +50,8 @@ Seeded on first boot only — change a password in the DB and it persists across
 | GET    | `/cart`                           | Pending requisition (login required) |
 | POST   | `/cart`                           | Add to cart (server validates product/qty) |
 | POST   | `/cart/{product_id}/remove`       | Remove a cart line |
+| GET    | `/manifest`                       | Your own requisition manifests (login required) |
+| GET    | `/manifest/{id}`                  | Manifest detail — **planted IDOR** (a01-airlock-manifest-override) |
 | GET    | `/login`, `/register`             | Auth forms |
 | POST   | `/login`, `/register`, `/logout`  | Auth actions |
 | GET    | `/comms`                          | Comms log — public, anonymous posts allowed |
@@ -58,6 +60,7 @@ Seeded on first boot only — change a password in the DB and it persists across
 | GET    | `/tracker`                        | Vulnerability tracker — accepts `?difficulty=` and `?status=` filters |
 | POST   | `/tracker/reset`                  | Reset all tracker rows to `undiscovered` (admin only) |
 | POST   | `/tracker/{id}/discover`          | Flip one tracker row to `discovered` (open by design — called by future planting code) |
+| GET    | `/debug`                          | **Planted misconfiguration** (a05-diagnostics-panel-exposed) — no auth gate |
 
 ## Vulnerability Tracker
 
@@ -105,4 +108,13 @@ Module path: `github.com/jshultz00/orbital-exchange`.
 
 ## Status
 
-Scaffold complete. **No intentional vulnerabilities planted yet** — the entire codebase currently uses sane defaults (bcrypt, parameterized SQL, html/template auto-escaping, session-token rotation on auth, server-side price/stock validation, admin gating on privileged actions). Future specs deviate from these defaults, one at a time, each referencing the tracker row it plants.
+Scaffold complete. Vulnerabilities are planted one at a time; each one deviates from the defensive baseline (bcrypt, parameterized SQL, html/template auto-escaping, session-token rotation on auth, server-side price/stock validation, admin gating on privileged actions) and references the tracker row it satisfies.
+
+### Planted so far
+
+| Tracker row | OWASP | Difficulty | Surface |
+|---|---|---|---|
+| `a05-diagnostics-panel-exposed` | A05 | easy | `GET /debug` — unauthenticated diagnostics dump (env, runtime, usernames) |
+| `a01-airlock-manifest-override` | A01 | easy | `GET /manifest/{id}` — IDOR; no ownership check on lookup |
+
+Each planted handler flips its tracker row to `discovered` when its detection condition fires (e.g. a viewer pulls a manifest they don't own).
