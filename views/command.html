@@ -1,0 +1,79 @@
+{{define "content"}}
+<section class="panel">
+    <p class="panel-title">Station Command // Authorized Access</p>
+    <h1>Bridge Dashboard</h1>
+    <p class="readout muted">
+        Signed in as <span class="mono amber">{{.User.Username}}</span>.
+        Privileged surfaces and planted-vulnerability adjacencies live here.
+    </p>
+</section>
+
+{{with .Stats}}
+<section class="panel">
+    <p class="panel-title">Station Telemetry</p>
+    <div class="stat-grid">
+        <div class="stat">
+            <div class="stat-label">Crew Aboard</div>
+            <div class="stat-value">{{.Users}}</div>
+        </div>
+        <div class="stat">
+            <div class="stat-label">Catalog Items</div>
+            <div class="stat-value">{{.Products}}</div>
+        </div>
+        <div class="stat">
+            <div class="stat-label">Cart Lines</div>
+            <div class="stat-value">{{.CartItems}}</div>
+        </div>
+        <div class="stat">
+            <div class="stat-label">Comms Entries</div>
+            <div class="stat-value">{{.CommsEntries}}</div>
+        </div>
+        <div class="stat">
+            <div class="stat-label">Vulns Discovered</div>
+            <div class="stat-value">
+                <span class="cyan">{{.VulnsDone}}</span>
+                <span class="muted">/ {{.Vulns}}</span>
+            </div>
+        </div>
+    </div>
+</section>
+{{end}}
+
+<section class="panel">
+    <p class="panel-title">Crew Roster</p>
+    <table class="cart-table mono">
+        <thead>
+            <tr>
+                <th class="num">ID</th>
+                <th>Callsign</th>
+                <th>Role</th>
+                <th>Aboard Since</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{range .Roster}}
+            <tr>
+                <td class="num">{{.ID}}</td>
+                <td>{{.Username}}</td>
+                <td>{{if .IsAdmin}}<span class="pill pill-exploited">COMMAND</span>{{else}}<span class="pill pill-undiscovered">CREW</span>{{end}}</td>
+                <td class="muted">{{.CreatedAt}}</td>
+            </tr>
+            {{end}}
+        </tbody>
+    </table>
+</section>
+
+<section class="panel">
+    <p class="panel-title">Bridge Tools // Placeholder</p>
+    <p class="readout muted">
+        Privileged tools (comms moderation, requisition oversight, beacon scanner,
+        bulk imports) will land in future increments. Each links here once planted.
+    </p>
+    <ul class="readout muted" style="line-height:1.8;">
+        <li>Comms log moderation &mdash; <span class="amber">unplanted</span></li>
+        <li>Cargo ledger import &mdash; <span class="amber">unplanted</span></li>
+        <li>Beacon scanner &mdash; <span class="amber">unplanted</span></li>
+        <li>Diagnostics panel &mdash; <span class="amber">unplanted</span></li>
+    </ul>
+</section>
+{{end}}

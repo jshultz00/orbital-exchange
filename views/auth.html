@@ -1,0 +1,44 @@
+{{define "content"}}
+<section class="panel auth-panel">
+    {{if eq .Mode "login"}}
+        <p class="panel-title">Crew Sign In</p>
+        <h1>Identify yourself, crew.</h1>
+        <p class="readout muted">Authenticate to receive your station privileges.</p>
+    {{else}}
+        <p class="panel-title">Crew Registration</p>
+        <h1>Request a callsign.</h1>
+        <p class="readout muted">New crew members start with standard commissary access.</p>
+    {{end}}
+
+    {{if .Error}}<p class="auth-error mono">! {{.Error}}</p>{{end}}
+
+    {{if eq .Mode "login"}}
+    <form class="auth-form" method="POST" action="/login">
+        <label>Callsign
+            <input type="text" name="username" value="{{.Username}}" autocomplete="username" required>
+        </label>
+        <label>Passphrase
+            <input type="password" name="password" autocomplete="current-password" required>
+        </label>
+        <div class="auth-actions">
+            <button class="btn" type="submit">Sign In</button>
+            <a class="readout muted" href="/register">Need a callsign? Register &rarr;</a>
+        </div>
+    </form>
+    {{else}}
+    <form class="auth-form" method="POST" action="/register">
+        <label>Callsign
+            <input type="text" name="username" value="{{.Username}}" autocomplete="username" required maxlength="32">
+        </label>
+        <label>Passphrase
+            <input type="password" name="password" autocomplete="new-password" required minlength="10">
+        </label>
+        <p class="readout muted">Passphrase: 10+ characters. Callsign: letters, numbers, _ - . only.</p>
+        <div class="auth-actions">
+            <button class="btn" type="submit">Register</button>
+            <a class="readout muted" href="/login">Already aboard? Sign in &rarr;</a>
+        </div>
+    </form>
+    {{end}}
+</section>
+{{end}}

@@ -1,0 +1,50 @@
+{{define "content"}}
+<section class="panel">
+    <p class="panel-title">Crew Cart // {{.User.Username}}</p>
+    <h1>Pending Requisition</h1>
+    {{if .Lines}}
+    <table class="cart-table mono">
+        <thead>
+            <tr>
+                <th>Item</th>
+                <th class="num">Unit</th>
+                <th class="num">Qty</th>
+                <th class="num">Subtotal</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {{range .Lines}}
+            <tr>
+                <td>
+                    <a href="/catalog/{{.Slug}}">{{.Name}}</a>
+                    <div class="cart-desc muted">{{.Description}}</div>
+                </td>
+                <td class="num">{{.UnitPrice}} cr</td>
+                <td class="num">{{.Qty}}</td>
+                <td class="num amber">{{.Subtotal}} cr</td>
+                <td class="num">
+                    <form method="POST" action="/cart/{{.ProductID}}/remove" style="display:inline;">
+                        <button class="btn btn-danger" type="submit" title="Remove">&times;</button>
+                    </form>
+                </td>
+            </tr>
+            {{end}}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="3" class="num muted">TOTAL</td>
+                <td class="num amber"><strong>{{.Total}} cr</strong></td>
+                <td></td>
+            </tr>
+        </tfoot>
+    </table>
+    <div class="cart-actions">
+        <a class="btn btn-cyan" href="/catalog">&larr; Continue Browsing</a>
+        <span class="readout muted">Fulfillment from storage bay is a future feature — orders are persisted only.</span>
+    </div>
+    {{else}}
+    <p class="readout">Your cart is empty. Visit the <a href="/catalog">catalog</a> to make a requisition.</p>
+    {{end}}
+</section>
+{{end}}
