@@ -95,6 +95,19 @@ CREATE INDEX IF NOT EXISTS vulnerabilities_category_idx ON vulnerabilities(categ
 CREATE INDEX IF NOT EXISTS vulnerabilities_status_idx   ON vulnerabilities(status);
 CREATE INDEX IF NOT EXISTS vulnerabilities_difficulty_idx ON vulnerabilities(difficulty);
 
+-- Decommissioned crew archive. PLANTED VULN a02-weak-password-hash: an
+-- older crew roster preserved on the station's archival drive stores
+-- passwords as raw unsalted MD5 hashes. The /archive page dumps these
+-- records to any caller, and the verify endpoint MD5s a submitted
+-- plaintext to compare — letting a crew member crack a hash and prove it.
+CREATE TABLE IF NOT EXISTS legacy_users (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    username   TEXT    NOT NULL UNIQUE,
+    md5_hash   TEXT    NOT NULL, -- hex MD5(password), no salt
+    role       TEXT    NOT NULL DEFAULT 'crew',
+    decommissioned_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Ration vouchers. Each code carries a flat credit discount. The seeder
 -- inserts a small starter set; the codes are intentionally meant to be
 -- single-use, but the cart redemption flow never marks them spent

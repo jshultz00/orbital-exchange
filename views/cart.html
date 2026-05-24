@@ -65,10 +65,15 @@
         </p>
         {{end}}
     </section>
-    <div class="cart-actions">
+    <form method="POST" action="/cart/checkout" class="cart-actions">
+        {{range .Lines}}
+        <input type="hidden" name="unit_price_{{.ProductID}}" value="{{.UnitPrice}}">
+        <input type="hidden" name="qty_{{.ProductID}}" value="{{.Qty}}">
+        {{end}}
         <a class="btn btn-cyan" href="/catalog">&larr; Continue Browsing</a>
-        <span class="readout muted">Fulfillment from storage bay is a future feature — orders are persisted only.</span>
-    </div>
+        <button class="btn" type="submit">File Requisition &rarr;</button>
+        <span class="readout muted">Pricing is computed client-side and submitted with the requisition.</span>
+    </form>
     {{else}}
     <p class="readout">Your cart is empty. Visit the <a href="/catalog">catalog</a> to make a requisition.</p>
     {{end}}

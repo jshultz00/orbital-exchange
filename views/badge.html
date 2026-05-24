@@ -1,0 +1,26 @@
+{{define "content"}}
+<section class="panel auth-panel">
+    <p class="panel-title">Express Badge Reader</p>
+    <h1>Tap in, crew.</h1>
+    <p class="readout muted">
+        Skip the passphrase prompt — present your station-issued badge code
+        and the reader logs you straight in. Convenient for shift changes
+        on the commissary floor.
+    </p>
+
+    {{if .Error}}<p class="auth-error mono">! {{.Error}}</p>{{end}}
+
+    <form class="auth-form" method="POST" action="/badge">
+        <label>Callsign
+            <input type="text" name="callsign" value="{{.Callsign}}" autocomplete="username" required>
+        </label>
+        <label>Badge Code
+            <input type="text" name="badge" autocomplete="off" placeholder="OE-CRW-..." required>
+        </label>
+        <div class="auth-actions">
+            <button class="btn" type="submit">Tap Badge</button>
+            <a class="readout muted" href="/login">Prefer the passphrase? Sign in &rarr;</a>
+        </div>
+    </form>
+</section>
+{{end}}

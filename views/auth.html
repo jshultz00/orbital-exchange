@@ -20,10 +20,14 @@
         <label>Passphrase
             <input type="password" name="password" autocomplete="current-password" required>
         </label>
+        <label class="auth-remember">
+            <input type="checkbox" name="remember" value="1"> Remember me on this terminal
+        </label>
         <div class="auth-actions">
             <button class="btn" type="submit">Sign In</button>
             <a class="readout muted" href="/register">Need a callsign? Register &rarr;</a>
         </div>
+        <p class="readout muted">Have a station badge? Use the <a href="/badge">express badge reader</a>.</p>
     </form>
     {{else}}
     <form class="auth-form" method="POST" action="/register">

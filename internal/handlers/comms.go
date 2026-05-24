@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/alexedwards/scs/v2"
@@ -121,6 +122,45 @@ func (c *Comms) Submit(w http.ResponseWriter, r *http.Request) {
 		`
 		if _, err := c.DB.Exec(flip, "a03-comms-stored-xss"); err != nil {
 			log.Printf("comms XSS discover flip: %v", err)
+		}
+	}
+
+	http.Redirect(w, r, "/comms", http.StatusSeeOther)
+}
+
+// Delete removes a comms entry. Admin-only. PLANTED VULN
+// a09-comms-log-silent-delete: the destructive action writes no audit row —
+// the entry simply vanishes. The tracker flips on the first such delete to
+// surface the missing logging.
+func (c *Comms) Delete(w http.ResponseWriter, r *http.Request) {
+	user := requireAdmin(w, r, c.Session)
+	if user == nil {
+		return
+	}
+	idStr := r.PathValue("id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil || id <= 0 {
+		http.Error(w, "bad id", http.StatusBadRequest)
+		return
+	}
+
+	res, err := c.DB.Exec(`DELETE FROM comms_entries WHERE id = ?`, id)
+	if err != nil {
+		log.Printf("comms delete: %v", err)
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
+	// Intentionally NO audit log insert here. That gap is the lesson.
+
+	if n, _ := res.RowsAffected(); n > 0 {
+		const flip = `
+			UPDATE vulnerabilities
+			SET status = 'discovered',
+			    discovered_at = CURRENT_TIMESTAMP
+			WHERE id = ? AND status = 'undiscovered'
+		`
+		if _, err := c.DB.Exec(flip, "a09-comms-log-silent-delete"); err != nil {
+			log.Printf("comms silent-delete discover flip: %v", err)
 		}
 	}
 

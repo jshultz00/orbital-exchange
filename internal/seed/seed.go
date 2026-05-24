@@ -13,8 +13,10 @@
 package seed
 
 import (
+	"crypto/md5"
 	"database/sql"
 	_ "embed"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 
@@ -100,6 +102,9 @@ func All(conn *sql.DB) error {
 		return err
 	}
 	if err := vouchers(tx); err != nil {
+		return err
+	}
+	if err := legacyUsers(tx); err != nil {
 		return err
 	}
 
@@ -280,6 +285,34 @@ var defaultVouchers = []struct {
 }{
 	{Code: "RATION10", Discount: 10, Description: "10cr off — cycle 412 morale push"},
 	{Code: "SALVAGE25", Discount: 25, Description: "25cr off — salvage program kickback"},
+}
+
+// defaultLegacyUsers seeds the decommissioned-crew archive. Hashes are
+// computed at seed time from these plaintexts so the file remains readable
+// and the crackable answers are explicit. PLANTED VULN a02-weak-password-hash:
+// raw unsalted MD5, by design.
+var defaultLegacyUsers = []struct {
+	Username string
+	Password string
+	Role     string
+}{
+	{Username: "h.vance", Password: "orion", Role: "navigation"},
+	{Username: "k.osei", Password: "letmein", Role: "hydroponics"},
+	{Username: "t.mori", Password: "comet1995", Role: "engineering"},
+}
+
+func legacyUsers(tx *sql.Tx) error {
+	const stmt = `
+		INSERT OR IGNORE INTO legacy_users (username, md5_hash, role)
+		VALUES (?, ?, ?)
+	`
+	for _, u := range defaultLegacyUsers {
+		sum := md5.Sum([]byte(u.Password))
+		if _, err := tx.Exec(stmt, u.Username, hex.EncodeToString(sum[:]), u.Role); err != nil {
+			return fmt.Errorf("seed legacy user %q: %w", u.Username, err)
+		}
+	}
+	return nil
 }
 
 func vouchers(tx *sql.Tx) error {

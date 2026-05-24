@@ -5,6 +5,8 @@
     <p class="readout muted">
         Open channel. Messages are visible to all crew and to Station Command.
         Anonymous transmissions are permitted; authed crew sign automatically.
+        Outbound broadcasts are signed; see the
+        <a href="/bridge/comms-beacon">beacon log</a> for the public ledger.
     </p>
 
     <form class="comms-form" method="POST" action="/comms">
@@ -34,6 +36,11 @@
                 <span class="mono amber">{{.Author}}</span>
                 {{if .FromCrew}}<span class="pill pill-discovered">CREW</span>{{end}}
                 <time class="mono muted">{{.CreatedAt}}</time>
+                {{if $.User.IsAdmin}}
+                <form method="POST" action="/comms/{{.ID}}/delete" style="display:inline; margin-left:0.5rem;">
+                    <button class="btn btn-ghost" type="submit" title="Command-only: delete this transmission">Purge</button>
+                </form>
+                {{end}}
             </header>
             <p class="comms-body">{{.Body}}</p>
         </li>

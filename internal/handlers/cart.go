@@ -2,7 +2,9 @@ package handlers
 
 import (
 	"database/sql"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -18,6 +20,10 @@ import (
 // a crew member redeems the same voucher code more than once. The redemption
 // flow validates the code but never marks it spent.
 const promoReplayTrackerID = "a04-promo-code-replay"
+
+// cartTamperTrackerID is the planted A01 row flipped when a checkout submits
+// a unit price or qty lower than the canonical product value in the DB.
+const cartTamperTrackerID = "a01-cart-price-tampering"
 
 // voucherSessionKey holds the comma-separated list of voucher codes the
 // current crew member has applied to their cart in this session.
@@ -255,6 +261,134 @@ func (c *Cart) Add(w http.ResponseWriter, r *http.Request) {
 
 	c.flash(r, "Added to cart.")
 	http.Redirect(w, r, "/cart", http.StatusSeeOther)
+}
+
+// Checkout processes POST /cart/checkout. PLANTED VULN a01-cart-price-tampering:
+// per-line unit_price and qty arrive in hidden form fields and the server
+// trusts them — a tampering crew member can pay less than the catalog asks.
+// The created manifest reflects the client-supplied values; only an audit
+// against the canonical DB price would catch the discrepancy.
+func (c *Cart) Checkout(w http.ResponseWriter, r *http.Request) {
+	user := requireLogin(w, r, c.Session)
+	if user == nil {
+		return
+	}
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "bad form", http.StatusBadRequest)
+		return
+	}
+
+	const q = `
+		SELECT p.id, p.name, p.price, ci.qty
+		FROM cart_items ci
+		JOIN products p ON p.id = ci.product_id
+		WHERE ci.user_id = ?
+		ORDER BY ci.created_at
+	`
+	rows, err := c.DB.Query(q, user.ID)
+	if err != nil {
+		log.Printf("cart checkout query: %v", err)
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	type canon struct {
+		id        int64
+		name      string
+		realPrice int
+		realQty   int
+	}
+	var lines []canon
+	for rows.Next() {
+		var l canon
+		if err := rows.Scan(&l.id, &l.name, &l.realPrice, &l.realQty); err != nil {
+			log.Printf("cart checkout scan: %v", err)
+			http.Error(w, "internal error", http.StatusInternalServerError)
+			return
+		}
+		lines = append(lines, l)
+	}
+	if len(lines) == 0 {
+		c.flash(r, "Cart is empty.")
+		http.Redirect(w, r, "/cart", http.StatusSeeOther)
+		return
+	}
+
+	// Build manifest items from client-submitted form values. No comparison
+	// to the canonical price is performed here — that is the point.
+	clientTotal := 0
+	canonTotal := 0
+	tampered := false
+	items := make([]ManifestItem, 0, len(lines))
+	for _, l := range lines {
+		priceKey := fmt.Sprintf("unit_price_%d", l.id)
+		qtyKey := fmt.Sprintf("qty_%d", l.id)
+		unitPrice, perr := strconv.Atoi(r.PostFormValue(priceKey))
+		if perr != nil {
+			unitPrice = l.realPrice
+		}
+		qty, qerr := strconv.Atoi(r.PostFormValue(qtyKey))
+		if qerr != nil || qty <= 0 {
+			qty = l.realQty
+		}
+		items = append(items, ManifestItem{Name: l.name, Qty: qty, UnitPrice: unitPrice})
+		clientTotal += unitPrice * qty
+		canonTotal += l.realPrice * l.realQty
+		if unitPrice < l.realPrice || qty < l.realQty {
+			tampered = true
+		}
+	}
+
+	_, discount := c.appliedVouchers(r)
+	finalTotal := clientTotal - discount
+	if finalTotal < 0 {
+		finalTotal = 0
+	}
+
+	itemsJSON, err := json.Marshal(items)
+	if err != nil {
+		log.Printf("cart checkout marshal: %v", err)
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
+	summary := fmt.Sprintf("Commissary draw (%d line%s)", len(items), pluralS(len(items)))
+	res, err := c.DB.Exec(
+		`INSERT INTO manifests (user_id, summary, items_json, total_credits) VALUES (?, ?, ?, ?)`,
+		user.ID, summary, string(itemsJSON), finalTotal,
+	)
+	if err != nil {
+		log.Printf("cart checkout insert manifest: %v", err)
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
+	if _, err := c.DB.Exec(`DELETE FROM cart_items WHERE user_id = ?`, user.ID); err != nil {
+		log.Printf("cart checkout clear: %v", err)
+	}
+	c.Session.Remove(r.Context(), voucherSessionKey)
+
+	if tampered || clientTotal < canonTotal {
+		const flip = `
+			UPDATE vulnerabilities
+			SET status = 'discovered',
+			    discovered_at = CURRENT_TIMESTAMP
+			WHERE id = ? AND status = 'undiscovered'
+		`
+		if _, ferr := c.DB.Exec(flip, cartTamperTrackerID); ferr != nil {
+			log.Printf("cart tamper discover flip: %v", ferr)
+		}
+	}
+
+	mid, _ := res.LastInsertId()
+	c.flash(r, fmt.Sprintf("Requisition filed. Manifest #%d.", mid))
+	http.Redirect(w, r, fmt.Sprintf("/manifest/%d", mid), http.StatusSeeOther)
+}
+
+func pluralS(n int) string {
+	if n == 1 {
+		return ""
+	}
+	return "s"
 }
 
 // Remove deletes one cart line for the current user.

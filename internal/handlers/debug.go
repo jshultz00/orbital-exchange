@@ -84,6 +84,11 @@ func (d *Debug) Panel(w http.ResponseWriter, r *http.Request) {
 	b.WriteString("    password: stationcommand\n")
 	b.WriteString("\n")
 
+	b.WriteString("[mounted routes — internal]\n")
+	b.WriteString("  /archive            decommissioned crew roster dump (legacy MD5 digests)\n")
+	b.WriteString("  /archive/verify     MD5 plaintext check against archived hashes\n")
+	b.WriteString("\n")
+
 	b.WriteString("[hint]\n")
 	b.WriteString("  tracker entry: " + debugTrackerID + "\n")
 

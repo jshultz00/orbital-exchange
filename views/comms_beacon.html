@@ -1,0 +1,66 @@
+{{define "content"}}
+<section class="panel">
+    <p class="panel-title">Outbound Comms // Beacon Log</p>
+    <h1>Signed Beacon Broadcast</h1>
+    <p class="readout">
+        Every outbound beacon is signed before transmission using the
+        station's custom MAC routine. Recent broadcasts are published
+        here so any crew member can independently verify authenticity.
+    </p>
+</section>
+
+<section class="panel">
+    <p class="panel-title">Recent Beacons</p>
+    <table class="cart-table mono">
+        <thead>
+            <tr>
+                <th class="num">SEQ</th>
+                <th>TIMESTAMP</th>
+                <th>MESSAGE</th>
+                <th>SIGNATURE</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{range .Beacons}}
+            <tr>
+                <td class="num">{{.Sequence}}</td>
+                <td class="muted">{{.Timestamp}}</td>
+                <td class="amber">{{.Message}}</td>
+                <td class="mono">{{.Signature}}</td>
+            </tr>
+            {{end}}
+        </tbody>
+    </table>
+</section>
+
+<section class="panel">
+    <p class="panel-title">Protocol Spec // beacon-mac-v1</p>
+    <p class="readout muted">
+        The station signs outbound beacons with a homegrown construction.
+        Crews implementing offline verifiers can use the pseudocode below.
+    </p>
+    <pre class="readout mono">a   = SHA1(secret + "|" + timestamp + "|" + message)
+b   = SHA1(timestamp + "|" + message + "|" + secret)
+sig = HEX( (a XOR b)[0..10] )</pre>
+    <p class="readout muted">
+        The shared secret is a short station-wide key, rotated quarterly.
+    </p>
+</section>
+
+<section class="panel">
+    <p class="panel-title">Verifier</p>
+    <p class="readout muted">
+        Submit a candidate secret. The station re-signs a published beacon
+        with it; a match confirms the secret is correct.
+    </p>
+
+    {{if .VerifySuccess}}<p class="readout amber">{{.VerifySuccess}}</p>{{end}}
+    {{if .VerifyError}}<p class="readout">{{.VerifyError}}</p>{{end}}
+
+    <form method="POST" action="/bridge/comms-beacon/verify" class="search-form">
+        <label class="muted mono" for="beacon-secret">CANDIDATE SECRET</label>
+        <input id="beacon-secret" type="text" name="secret" autocomplete="off" value="{{.AttemptSecret}}" required>
+        <button type="submit">Verify</button>
+    </form>
+</section>
+{{end}}

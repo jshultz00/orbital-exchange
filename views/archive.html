@@ -1,0 +1,54 @@
+{{define "content"}}
+<section class="panel">
+    <p class="panel-title">Decommissioned Crew Archive</p>
+    <h1>Legacy Roster Dump</h1>
+    <p class="readout muted">
+        Pre-migration crew records preserved on the station's archival drive.
+        Password digests are stored in the original station-1 format
+        (raw MD5, no salt). Retained for audit completeness.
+    </p>
+
+    {{if .Rows}}
+    <table class="cart-table mono">
+        <thead>
+            <tr>
+                <th>Callsign</th>
+                <th>Role</th>
+                <th>MD5 Digest</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{range .Rows}}
+            <tr>
+                <td class="amber">{{.Username}}</td>
+                <td class="muted">{{.Role}}</td>
+                <td class="mono">{{.MD5Hash}}</td>
+            </tr>
+            {{end}}
+        </tbody>
+    </table>
+    {{else}}
+    <p class="readout muted">Archive empty.</p>
+    {{end}}
+</section>
+
+<section class="panel">
+    <p class="panel-title">Identity Verification</p>
+    <p class="readout muted">
+        Submit a callsign and the cleartext passphrase. The station hashes
+        the submission with MD5 and compares it to the archived digest.
+    </p>
+
+    {{if .VerifySuccess}}<p class="readout amber">{{.VerifySuccess}}</p>{{end}}
+    {{if .VerifyError}}<p class="readout">{{.VerifyError}}</p>{{end}}
+    {{if .AttemptHash}}<p class="readout mono muted">submitted MD5: {{.AttemptHash}}</p>{{end}}
+
+    <form method="POST" action="/archive/verify" class="search-form">
+        <label class="muted mono" for="legacy-username">CALLSIGN</label>
+        <input id="legacy-username" type="text" name="username" autocomplete="off" value="{{.AttemptUser}}" required>
+        <label class="muted mono" for="legacy-password">PASSPHRASE</label>
+        <input id="legacy-password" type="text" name="password" autocomplete="off" required>
+        <button type="submit">Verify</button>
+    </form>
+</section>
+{{end}}

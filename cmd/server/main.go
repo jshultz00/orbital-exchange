@@ -69,6 +69,16 @@ func main() {
 	mux.HandleFunc("GET /register", auth.RegisterForm)
 	mux.HandleFunc("POST /register", auth.Register)
 	mux.HandleFunc("POST /logout", auth.Logout)
+	// Planted vuln a02-rememberme-plaintext: /remember-me decodes the cookie
+	// and reveals the plaintext payload (username + station_key).
+	mux.HandleFunc("GET /remember-me", auth.RememberMe)
+
+	// Planted vuln a03-login-sqli: the express badge reader builds its
+	// lookup query by string concatenation, so the WHERE clause can be
+	// short-circuited with the right input.
+	badge := &handlers.Badge{DB: conn, Views: v, Session: sess}
+	mux.HandleFunc("GET /badge", badge.Form)
+	mux.HandleFunc("POST /badge", badge.Submit)
 
 	cart := &handlers.Cart{DB: conn, Views: v, Session: sess}
 	mux.HandleFunc("GET /cart", cart.View)
@@ -77,6 +87,10 @@ func main() {
 	// Planted vuln a04-promo-code-replay: voucher redemption validates the
 	// code but never marks it spent, so a single code can be re-applied.
 	mux.HandleFunc("POST /cart/voucher", cart.ApplyVoucher)
+	// Planted vuln a01-cart-price-tampering: checkout reads per-line
+	// unit_price and qty from hidden form fields without validating against
+	// the canonical product price.
+	mux.HandleFunc("POST /cart/checkout", cart.Checkout)
 
 	manifest := &handlers.Manifest{DB: conn, Views: v, Session: sess}
 	mux.HandleFunc("GET /manifest", manifest.Index)
@@ -90,6 +104,9 @@ func main() {
 	comms := &handlers.Comms{DB: conn, Views: v, Session: sess}
 	mux.HandleFunc("GET /comms", comms.List)
 	mux.HandleFunc("POST /comms", comms.Submit)
+	// Planted vuln a09-comms-log-silent-delete: admin deletes comms entries
+	// with no audit row written.
+	mux.HandleFunc("POST /comms/{id}/delete", comms.Delete)
 
 	command := &handlers.Command{DB: conn, Views: v, Session: sess}
 	mux.HandleFunc("GET /command", command.Dashboard)
@@ -113,6 +130,21 @@ func main() {
 	// and the global Recover middleware dumps the full stack into the response.
 	telemetry := &handlers.Telemetry{DB: conn, Views: v, Session: sess}
 	mux.HandleFunc("GET /telemetry", telemetry.Cycle)
+
+	// Planted vuln a02-weak-password-hash: the decommissioned crew archive
+	// dumps unsalted MD5 password digests and exposes a verifier that flips
+	// the tracker when any plaintext is cracked.
+	legacy := &handlers.Legacy{DB: conn, Views: v, Session: sess}
+	mux.HandleFunc("GET /archive", legacy.Index)
+	mux.HandleFunc("POST /archive/verify", legacy.Verify)
+
+	// Planted vuln a02-comms-beacon-cipher: outbound beacons are signed by
+	// a custom (non-HMAC) MAC routine with a short shared secret. The page
+	// publishes the spec and recent beacons so the secret falls to offline
+	// brute force; submitting it to the verifier flips the tracker.
+	commsBeacon := &handlers.CommsBeacon{DB: conn, Views: v, Session: sess}
+	mux.HandleFunc("GET /bridge/comms-beacon", commsBeacon.Page)
+	mux.HandleFunc("POST /bridge/comms-beacon/verify", commsBeacon.Verify)
 
 	// sess.LoadAndSave is the session middleware: it loads any existing
 	// session for the request, makes session methods callable inside handlers
