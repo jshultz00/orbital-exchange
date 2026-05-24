@@ -35,7 +35,7 @@ ORBITAL_ADDR=":8080" ORBITAL_DB="data/dev.sqlite" go run ./cmd/server
 
 | Account     | Username  | Password         | Role            |
 |-------------|-----------|------------------|-----------------|
-| Admin       | `command` | `stationcommand` | Station Command |
+| Admin       | `command` | hidden           | Station Command |
 | Crew member | `ryland`  | `hailmary42`     | Standard crew   |
 
 Seeded on first boot only — change a password in the DB and it persists across reseeds. To add more accounts, edit `defaultUsers` in [internal/seed/seed.go](internal/seed/seed.go).
