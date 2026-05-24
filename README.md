@@ -13,6 +13,30 @@ A purposefully vulnerable Juice-Shop-style web app for self-directed OWASP Top 1
 - **Sessions:** [`github.com/alexedwards/scs/v2`](https://github.com/alexedwards/scs) with SQLite-backed store (sessions survive restarts)
 - **Password hashing:** `golang.org/x/crypto/bcrypt` (cost 12)
 
+## Installation
+
+Prerequisites:
+
+- Go 1.22 or newer
+- Git
+
+From the homelab repo:
+
+```sh
+cd orbital-exchange
+go mod download
+```
+
+Or clone/run this app on its own:
+
+```sh
+git clone <repo-url>
+cd orbital-exchange
+go mod download
+```
+
+No external database service is required. The app creates a local SQLite file under `data/` on first boot.
+
 ## Run
 
 ```sh
@@ -29,6 +53,28 @@ Override the port or DB path with env vars:
 
 ```sh
 ORBITAL_ADDR=":8080" ORBITAL_DB="data/dev.sqlite" go run ./cmd/server
+```
+
+To build a local binary instead:
+
+```sh
+mkdir -p bin
+go build -o bin/orbital-exchange ./cmd/server
+./bin/orbital-exchange
+```
+
+## Usage
+
+1. Start the server and open `http://localhost:3000`.
+2. Sign in with the standard crew account below, or register a fresh crew account from `/register`.
+3. Explore the commissary, cart, manifests, crew roster, comms log, and tracker from the top navigation.
+4. Use `/tracker` to pick a challenge. Hints are hidden by default; choose **Reveal hint** only when you want help.
+5. When a hidden success condition is met, the matching tracker row flips to `discovered`.
+
+For repeat practice, use the tracker reset button to clear discovery status while preserving users, carts, and comms. For a clean install, stop the server and run:
+
+```sh
+./scripts/wipe-db.sh
 ```
 
 ## Default credentials
