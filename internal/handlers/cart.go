@@ -14,6 +14,15 @@ import (
 	"github.com/jshultz00/orbital-exchange/internal/views"
 )
 
+// promoReplayTrackerID is the planted A04 (Insecure Design) row flipped when
+// a crew member redeems the same voucher code more than once. The redemption
+// flow validates the code but never marks it spent.
+const promoReplayTrackerID = "a04-promo-code-replay"
+
+// voucherSessionKey holds the comma-separated list of voucher codes the
+// current crew member has applied to their cart in this session.
+const voucherSessionKey = "applied_vouchers"
+
 // Cart handles the per-user shopping cart.
 //
 // Defensive baseline:
@@ -75,10 +84,115 @@ func (c *Cart) View(w http.ResponseWriter, r *http.Request) {
 		lines = append(lines, l)
 	}
 
+	applied, discount := c.appliedVouchers(r)
+	finalTotal := total - discount
+	if finalTotal < 0 {
+		finalTotal = 0
+	}
+
 	data := pageData(r, c.Session, "Cart")
 	data["Lines"] = lines
 	data["Total"] = total
+	data["Vouchers"] = applied
+	data["Discount"] = discount
+	data["FinalTotal"] = finalTotal
 	render(w, c.Views, "cart", data)
+}
+
+// AppliedVoucher pairs a redeemed code with its discount for the cart view.
+type AppliedVoucher struct {
+	Code     string
+	Discount int
+}
+
+// ApplyVoucher handles POST /cart/voucher. Looks up the submitted code,
+// confirms it exists, appends it to the session list, and re-renders the
+// cart. The code is intentionally NOT marked as consumed — replays stack.
+func (c *Cart) ApplyVoucher(w http.ResponseWriter, r *http.Request) {
+	user := requireLogin(w, r, c.Session)
+	if user == nil {
+		return
+	}
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "bad form", http.StatusBadRequest)
+		return
+	}
+	code := strings.ToUpper(strings.TrimSpace(r.PostFormValue("code")))
+	if code == "" {
+		c.flash(r, "Enter a voucher code.")
+		http.Redirect(w, r, "/cart", http.StatusSeeOther)
+		return
+	}
+
+	var discount int
+	err := c.DB.QueryRow(`SELECT discount FROM vouchers WHERE code = ?`, code).Scan(&discount)
+	if errors.Is(err, sql.ErrNoRows) {
+		c.flash(r, "Voucher not recognized.")
+		http.Redirect(w, r, "/cart", http.StatusSeeOther)
+		return
+	}
+	if err != nil {
+		log.Printf("voucher lookup: %v", err)
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
+
+	current := c.Session.GetString(r.Context(), voucherSessionKey)
+	codes := splitCodes(current)
+	for _, existing := range codes {
+		if existing == code {
+			// Replay confirmed — flip the tracker row.
+			const flip = `
+				UPDATE vulnerabilities
+				SET status = 'discovered',
+				    discovered_at = CURRENT_TIMESTAMP
+				WHERE id = ? AND status = 'undiscovered'
+			`
+			if _, ferr := c.DB.Exec(flip, promoReplayTrackerID); ferr != nil {
+				log.Printf("voucher replay discover flip: %v", ferr)
+			}
+			break
+		}
+	}
+	codes = append(codes, code)
+	c.Session.Put(r.Context(), voucherSessionKey, strings.Join(codes, ","))
+	c.flash(r, "Voucher "+code+" applied (-"+strconv.Itoa(discount)+" cr).")
+	http.Redirect(w, r, "/cart", http.StatusSeeOther)
+}
+
+// appliedVouchers resolves session-stored codes back to discount values and
+// returns the rendered list plus total discount.
+func (c *Cart) appliedVouchers(r *http.Request) ([]AppliedVoucher, int) {
+	raw := c.Session.GetString(r.Context(), voucherSessionKey)
+	codes := splitCodes(raw)
+	if len(codes) == 0 {
+		return nil, 0
+	}
+	out := make([]AppliedVoucher, 0, len(codes))
+	total := 0
+	for _, code := range codes {
+		var d int
+		if err := c.DB.QueryRow(`SELECT discount FROM vouchers WHERE code = ?`, code).Scan(&d); err != nil {
+			continue
+		}
+		out = append(out, AppliedVoucher{Code: code, Discount: d})
+		total += d
+	}
+	return out, total
+}
+
+func splitCodes(s string) []string {
+	if s == "" {
+		return nil
+	}
+	parts := strings.Split(s, ",")
+	out := parts[:0]
+	for _, p := range parts {
+		if p = strings.TrimSpace(p); p != "" {
+			out = append(out, p)
+		}
+	}
+	return out
 }
 
 // Add inserts/updates a cart line. Posted from product detail or catalog.

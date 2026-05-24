@@ -74,6 +74,9 @@ func main() {
 	mux.HandleFunc("GET /cart", cart.View)
 	mux.HandleFunc("POST /cart", cart.Add)
 	mux.HandleFunc("POST /cart/{product_id}/remove", cart.Remove)
+	// Planted vuln a04-promo-code-replay: voucher redemption validates the
+	// code but never marks it spent, so a single code can be re-applied.
+	mux.HandleFunc("POST /cart/voucher", cart.ApplyVoucher)
 
 	manifest := &handlers.Manifest{DB: conn, Views: v, Session: sess}
 	mux.HandleFunc("GET /manifest", manifest.Index)
@@ -91,6 +94,11 @@ func main() {
 	command := &handlers.Command{DB: conn, Views: v, Session: sess}
 	mux.HandleFunc("GET /command", command.Dashboard)
 
+	// Planted vuln a10-beacon-scan-*: SSRF via an unrestricted server-side
+	// URL fetcher exposed to any logged-in crew member.
+	beacon := &handlers.Beacon{DB: conn, Views: v, Session: sess}
+	mux.HandleFunc("GET /bridge/beacon-scan", beacon.Scan)
+
 	tracker := &handlers.Tracker{DB: conn, Views: v, Session: sess}
 	mux.HandleFunc("GET /tracker", tracker.View)
 	mux.HandleFunc("POST /tracker/reset", tracker.Reset)
@@ -101,13 +109,18 @@ func main() {
 	debug := &handlers.Debug{DB: conn, Views: v, Session: sess}
 	mux.HandleFunc("GET /debug", debug.Panel)
 
+	// Planted vuln a05-verbose-stack-traces: /telemetry panics on bad input
+	// and the global Recover middleware dumps the full stack into the response.
+	telemetry := &handlers.Telemetry{DB: conn, Views: v, Session: sess}
+	mux.HandleFunc("GET /telemetry", telemetry.Cycle)
+
 	// sess.LoadAndSave is the session middleware: it loads any existing
 	// session for the request, makes session methods callable inside handlers
 	// via r.Context(), and writes the updated session back on the way out.
 	// Wrapping the whole mux means every route — static and dynamic — has
 	// access to the session.
 	log.Printf("orbital-exchange listening on %s", cfg.Addr)
-	if err := http.ListenAndServe(cfg.Addr, sess.LoadAndSave(mux)); err != nil {
+	if err := http.ListenAndServe(cfg.Addr, handlers.Recover(conn, sess.LoadAndSave(mux))); err != nil {
 		log.Fatalf("server: %v", err)
 	}
 }

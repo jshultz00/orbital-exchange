@@ -99,6 +99,9 @@ func All(conn *sql.DB) error {
 	if err := manifests(tx); err != nil {
 		return err
 	}
+	if err := vouchers(tx); err != nil {
+		return err
+	}
 
 	if err := tx.Commit(); err != nil {
 		return fmt.Errorf("seed commit: %w", err)
@@ -262,6 +265,31 @@ func manifests(tx *sql.Tx) error {
 			userID, m.Summary, m.ItemsJSON, m.TotalCredits,
 		); err != nil {
 			return fmt.Errorf("seed manifest insert %q: %w", m.Summary, err)
+		}
+	}
+	return nil
+}
+
+// defaultVouchers seeds a small set of ration discount codes. Each carries a
+// flat credit discount. The redemption flow at POST /cart/voucher validates
+// codes but does not mark them spent — planted vuln a04-promo-code-replay.
+var defaultVouchers = []struct {
+	Code        string
+	Discount    int
+	Description string
+}{
+	{Code: "RATION10", Discount: 10, Description: "10cr off — cycle 412 morale push"},
+	{Code: "SALVAGE25", Discount: 25, Description: "25cr off — salvage program kickback"},
+}
+
+func vouchers(tx *sql.Tx) error {
+	const stmt = `
+		INSERT OR IGNORE INTO vouchers (code, discount, description)
+		VALUES (?, ?, ?)
+	`
+	for _, v := range defaultVouchers {
+		if _, err := tx.Exec(stmt, v.Code, v.Discount, v.Description); err != nil {
+			return fmt.Errorf("seed voucher %q: %w", v.Code, err)
 		}
 	}
 	return nil

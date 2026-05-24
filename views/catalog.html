@@ -7,6 +7,16 @@
         Station Command discretion. Place items in your cart for fulfillment
         from the storage bay.
     </p>
+    <form class="search-form" method="get" action="/catalog">
+        <label for="catalog-search" class="muted mono">REQUISITION QUERY</label>
+        <input id="catalog-search" type="text" name="q" value="{{.SearchQuery}}" placeholder="Search rations, oxygen, tools..." autocomplete="off">
+        <button type="submit">Scan</button>
+    </form>
+    {{if .SearchError}}
+    <p class="readout error mono">requisition error: {{.SearchError}}</p>
+    {{else if .SearchQuery}}
+    <p class="readout muted mono">filter: {{.SearchQuery}}</p>
+    {{end}}
 </section>
 
 {{range .Sections}}

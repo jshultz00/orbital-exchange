@@ -1,0 +1,33 @@
+{{define "content"}}
+<section class="panel">
+    <p class="panel-title">Bridge // Beacon Scanner</p>
+    <h1>External Beacon Scan</h1>
+    <p class="readout">
+        Submit a beacon URL. The station will fetch it on your behalf and return
+        the response preview. Intended for diagnosing distant relays; outbound
+        traffic is unrestricted.
+    </p>
+    <form class="search-form" method="get" action="/bridge/beacon-scan">
+        <label for="beacon-url" class="muted mono">BEACON URL</label>
+        <input id="beacon-url" type="text" name="url" value="{{.URL}}" placeholder="https://example.com/status" autocomplete="off">
+        <button type="submit">Scan</button>
+    </form>
+</section>
+
+{{if .Error}}
+<section class="panel">
+    <p class="panel-title">Scan Error</p>
+    <pre class="readout error mono">{{.Error}}</pre>
+</section>
+{{else if .Body}}
+<section class="panel">
+    <p class="panel-title">Response // {{.Status}}</p>
+    <p class="readout muted mono">target: {{.URL}}</p>
+    <details>
+        <summary class="muted mono">headers</summary>
+        <pre class="readout mono">{{.Headers}}</pre>
+    </details>
+    <pre class="readout mono">{{.Body}}</pre>
+</section>
+{{end}}
+{{end}}

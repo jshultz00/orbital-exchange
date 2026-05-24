@@ -95,6 +95,17 @@ CREATE INDEX IF NOT EXISTS vulnerabilities_category_idx ON vulnerabilities(categ
 CREATE INDEX IF NOT EXISTS vulnerabilities_status_idx   ON vulnerabilities(status);
 CREATE INDEX IF NOT EXISTS vulnerabilities_difficulty_idx ON vulnerabilities(difficulty);
 
+-- Ration vouchers. Each code carries a flat credit discount. The seeder
+-- inserts a small starter set; the codes are intentionally meant to be
+-- single-use, but the cart redemption flow never marks them spent
+-- (planted vuln a04-promo-code-replay).
+CREATE TABLE IF NOT EXISTS vouchers (
+    code        TEXT    PRIMARY KEY,
+    discount    INTEGER NOT NULL CHECK (discount > 0),
+    description TEXT    NOT NULL DEFAULT '',
+    created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Sessions table for github.com/alexedwards/scs/v2 + sqlite3store. The store
 -- does NOT auto-create this — schema is required up front. See:
 -- https://github.com/alexedwards/scs/blob/master/sqlite3store/README.md

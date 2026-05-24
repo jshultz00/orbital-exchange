@@ -33,12 +33,38 @@
         </tbody>
         <tfoot>
             <tr>
+                <td colspan="3" class="num muted">SUBTOTAL</td>
+                <td class="num amber">{{.Total}} cr</td>
+                <td></td>
+            </tr>
+            {{if .Vouchers}}
+            <tr>
+                <td colspan="3" class="num muted">VOUCHER DISCOUNT</td>
+                <td class="num cyan">-{{.Discount}} cr</td>
+                <td></td>
+            </tr>
+            {{end}}
+            <tr>
                 <td colspan="3" class="num muted">TOTAL</td>
-                <td class="num amber"><strong>{{.Total}} cr</strong></td>
+                <td class="num amber"><strong>{{.FinalTotal}} cr</strong></td>
                 <td></td>
             </tr>
         </tfoot>
     </table>
+
+    <section class="panel" style="margin-top:1rem;">
+        <p class="panel-title">Ration Voucher</p>
+        <form method="POST" action="/cart/voucher" class="search-form">
+            <label for="voucher-code" class="muted mono">VOUCHER CODE</label>
+            <input id="voucher-code" type="text" name="code" placeholder="e.g. RATION10" autocomplete="off">
+            <button type="submit">Redeem</button>
+        </form>
+        {{if .Vouchers}}
+        <p class="readout muted mono">applied:
+            {{range $i, $v := .Vouchers}}{{if $i}}, {{end}}{{$v.Code}} (-{{$v.Discount}}cr){{end}}
+        </p>
+        {{end}}
+    </section>
     <div class="cart-actions">
         <a class="btn btn-cyan" href="/catalog">&larr; Continue Browsing</a>
         <span class="readout muted">Fulfillment from storage bay is a future feature — orders are persisted only.</span>

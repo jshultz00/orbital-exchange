@@ -66,7 +66,8 @@
     "title": "Spike the requisition query",
     "hint": "The commissary search bar concatenates crew input into a database query. Return rows the request was never meant to expose.",
     "difficulty": "easy",
-    "sort_order": 10
+    "sort_order": 10,
+    "is_planted": true
   },
   {
     "id": "a03-login-sqli",
@@ -108,7 +109,8 @@
     "title": "Replay a single-use ration voucher",
     "hint": "Voucher redemption checks validity but never marks codes spent. Apply the same voucher repeatedly.",
     "difficulty": "easy",
-    "sort_order": 30
+    "sort_order": 30,
+    "is_planted": true
   },
 
   {
@@ -135,7 +137,8 @@
     "title": "Trigger a verbose telemetry dump",
     "hint": "Unhandled exceptions return full stack traces and file paths. Use one to map the codebase.",
     "difficulty": "easy",
-    "sort_order": 30
+    "sort_order": 30,
+    "is_planted": true
   },
 
   {
@@ -185,7 +188,8 @@
     "title": "Register with a trivial passphrase",
     "hint": "Registration accepts \"password\" and \"123456\". Confirm by registering one.",
     "difficulty": "easy",
-    "sort_order": 30
+    "sort_order": 30,
+    "is_planted": true
   },
 
   {
@@ -244,7 +248,8 @@
     "title": "Scan an external beacon URL",
     "hint": "The bridge offers a beacon-scan tool that fetches a crew-supplied URL. Point it at something internal it should not reach.",
     "difficulty": "easy",
-    "sort_order": 10
+    "sort_order": 10,
+    "is_planted": true
   },
   {
     "id": "a10-beacon-cloud-metadata",
@@ -252,7 +257,8 @@
     "title": "Reach the cloud metadata endpoint",
     "hint": "The beacon scanner has no IP allowlist. Use it to retrieve cloud metadata available only to the host itself.",
     "difficulty": "medium",
-    "sort_order": 20
+    "sort_order": 20,
+    "is_planted": true
   },
   {
     "id": "a10-beacon-loopback-admin",
@@ -260,6 +266,7 @@
     "title": "Bounce the beacon at the admin loopback",
     "hint": "The scanner can reach localhost-bound admin endpoints the public network cannot. Read one through it.",
     "difficulty": "medium",
-    "sort_order": 30
+    "sort_order": 30,
+    "is_planted": true
   }
 ]

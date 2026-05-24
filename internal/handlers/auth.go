@@ -30,6 +30,7 @@ type Auth struct {
 }
 
 const bcryptCost = 12
+const weakPasswordPolicyTrackerID = "a07-weak-password-policy"
 
 // ----- GET forms -----
 
@@ -147,6 +148,21 @@ func (a *Auth) Register(w http.ResponseWriter, r *http.Request) {
 	a.Session.Put(r.Context(), session.KeyIsAdmin, false)
 	a.Session.Put(r.Context(), session.KeyFlash, "Welcome aboard, "+username+".")
 
+	// PLANTED VULN a07-weak-password-policy: registration accepts trivial
+	// passphrases. Flip the tracker when a crew member proves it by registering
+	// with one of the obvious defaults called out by the challenge.
+	if isTrivialPassphrase(password) {
+		const flip = `
+			UPDATE vulnerabilities
+			SET status = 'discovered',
+			    discovered_at = CURRENT_TIMESTAMP
+			WHERE id = ? AND status = 'undiscovered'
+		`
+		if _, err := a.DB.Exec(flip, weakPasswordPolicyTrackerID); err != nil {
+			log.Printf("auth weak password discover flip: %v", err)
+		}
+	}
+
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
@@ -180,12 +196,9 @@ func generateStationKey() (string, error) {
 	return "OE-CRW-" + hex.EncodeToString(b), nil
 }
 
-// validateRegistration enforces a minimal but real policy. Returns "" if OK,
-// otherwise the user-facing error message.
-//
-// Deliberately strong by default — A07 "weak password policy" exists as a
-// planned planted vuln. When that one is planted, this function (or its
-// caller) is the natural place to weaken.
+// validateRegistration intentionally enforces only shape limits. This plants
+// A07 "weak password policy": trivial passphrases such as "password" and
+// "123456" are accepted.
 func validateRegistration(username, password string) string {
 	if username == "" {
 		return "Crew callsign is required."
@@ -199,11 +212,20 @@ func validateRegistration(username, password string) string {
 			return "Crew callsign may only contain letters, numbers, underscore, dash, or period."
 		}
 	}
-	if len(password) < 10 {
-		return "Passphrase must be at least 10 characters."
+	if password == "" {
+		return "Passphrase is required."
 	}
 	if len(password) > 256 {
 		return "Passphrase must be 256 characters or fewer."
 	}
 	return ""
+}
+
+func isTrivialPassphrase(password string) bool {
+	switch strings.ToLower(strings.TrimSpace(password)) {
+	case "password", "123456":
+		return true
+	default:
+		return false
+	}
 }
