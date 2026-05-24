@@ -97,7 +97,8 @@
     "title": "Salvage from a deprecated image parser",
     "hint": "Avatar uploads pass through a parser whose advisories were never patched. The relevant CVE is public — find it.",
     "difficulty": "hard",
-    "sort_order": 10
+    "sort_order": 10,
+    "is_planted": true
   },
   {
     "id": "a03-known-cve-jwt",

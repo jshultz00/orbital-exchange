@@ -1,0 +1,39 @@
+{{define "content"}}
+<section class="panel">
+    <p class="panel-title">Crew Avatar Uplink</p>
+    <h1>Refresh your station portrait.</h1>
+    <p class="readout muted">Profile art is normalized by the salvage-era image bridge before display on internal terminals.</p>
+
+    {{if .Error}}<p class="auth-error mono">! {{.Error}}</p>{{end}}
+
+    <form class="auth-form" method="POST" action="/avatar" enctype="multipart/form-data">
+        <label>Avatar packet
+            <input type="file" name="avatar" accept=".png,.jpg,.jpeg,.gif,.svg,.mvg,image/*" required>
+        </label>
+        <p class="readout muted">Parser: ImageMagick 6.9.2-10 legacy profile bridge.</p>
+        <div class="auth-actions">
+            <button class="btn" type="submit">Upload</button>
+            <a class="readout muted" href="/tracker">Review tracker &rarr;</a>
+        </div>
+    </form>
+</section>
+
+{{if .Result}}
+<section class="panel">
+    <p class="panel-title">Parser Telemetry</p>
+    <dl class="product-record">
+        <dt>File</dt>
+        <dd>{{.Result.Filename}}</dd>
+        <dt>Bytes</dt>
+        <dd>{{.Result.Size}}</dd>
+        <dt>Parser</dt>
+        <dd>{{.Result.Parser}}</dd>
+    </dl>
+    <ul class="comms-entries">
+        {{range .Result.Notes}}
+        <li class="comms-entry mono">{{.}}</li>
+        {{end}}
+    </ul>
+</section>
+{{end}}
+{{end}}

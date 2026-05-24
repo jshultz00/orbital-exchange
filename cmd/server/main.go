@@ -117,6 +117,13 @@ func main() {
 	mux.HandleFunc("GET /crew", crew.Index)
 	mux.HandleFunc("GET /crew/{id}", crew.Detail)
 
+	// Planted vuln a03-deprecated-image-parser: crew avatar uploads are fed
+	// through a retired ImageMagick 6.9.2-era parser. An ImageTragick-style
+	// MVG/SVG payload reaches the legacy delegate path and flips the tracker.
+	avatar := &handlers.Avatar{DB: conn, Views: v, Session: sess}
+	mux.HandleFunc("GET /avatar", avatar.Form)
+	mux.HandleFunc("POST /avatar", avatar.Upload)
+
 	comms := &handlers.Comms{DB: conn, Views: v, Session: sess}
 	mux.HandleFunc("GET /comms", comms.List)
 	mux.HandleFunc("POST /comms", comms.Submit)
