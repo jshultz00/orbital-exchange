@@ -20,18 +20,17 @@ Prerequisites:
 - Go 1.22 or newer
 - Git
 
-From the homelab repo:
+Clone the public repository:
 
 ```sh
-cd orbital-exchange
+git clone https://github.com/jshultz00/vulnscope.git
+cd vulnscope
 go mod download
 ```
 
-Or clone/run this app on its own:
+If you downloaded the ZIP from GitHub instead, extract it, open a terminal in the extracted `vulnscope` directory, and run:
 
 ```sh
-git clone <repo-url>
-cd orbital-exchange
 go mod download
 ```
 
