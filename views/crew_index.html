@@ -1,0 +1,34 @@
+{{define "content"}}
+<section class="panel">
+    <p class="panel-title">Badge Roster // Station Directory</p>
+    <h1>Crew Roster</h1>
+    <p class="readout muted">All registered crew members aboard Orbital Exchange. Crew IDs are assigned sequentially by the badge controller.</p>
+
+    {{if .Roster}}
+    <table class="cart-table mono">
+        <thead>
+            <tr>
+                <th class="num">ID</th>
+                <th>Callsign</th>
+                <th>Rank</th>
+                <th>Boarded</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {{range .Roster}}
+            <tr>
+                <td class="num mono">#{{.ID}}</td>
+                <td>{{.Username}}</td>
+                <td>{{if .IsAdmin}}<span class="green">COMMAND</span>{{else}}<span class="muted">CREW</span>{{end}}</td>
+                <td class="muted">{{.CreatedAt}}</td>
+                <td class="num"><a class="btn btn-cyan" href="/crew/{{.ID}}">VIEW</a></td>
+            </tr>
+            {{end}}
+        </tbody>
+    </table>
+    {{else}}
+    <p class="readout">No crew on record.</p>
+    {{end}}
+</section>
+{{end}}

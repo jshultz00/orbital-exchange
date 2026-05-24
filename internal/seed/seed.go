@@ -24,13 +24,18 @@ import (
 // Default seeded user accounts. Documented in README. Idempotent: a row is
 // only inserted if its username does not already exist, so a password change
 // in the DB survives subsequent reseeds.
+//
+// StationKey is the API access token shown on the crew detail page. Admin's
+// key is the prize for the a01-crew-roster-idor → a01-station-key-manifest-dump
+// exploit chain. Keys are fixed so fresh databases are deterministic.
 var defaultUsers = []struct {
-	Username string
-	Password string
-	IsAdmin  bool
+	Username   string
+	Password   string
+	IsAdmin    bool
+	StationKey string
 }{
-	{Username: "command", Password: "stationcommand", IsAdmin: true},
-	{Username: "ryland", Password: "hailmary42", IsAdmin: false},
+	{Username: "command", Password: "stationcommand", IsAdmin: true, StationKey: "OE-CMD-ce3f9a2b18d4e506fa71"},
+	{Username: "ryland", Password: "hailmary42", IsAdmin: false, StationKey: "OE-CRW-4a8b1d7c2e9f3056ab12"},
 }
 
 //go:embed categories.json
@@ -49,12 +54,12 @@ type category struct {
 }
 
 type vulnerability struct {
-	ID          string `json:"id"`
-	CategoryID  string `json:"category_id"`
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	Difficulty  string `json:"difficulty"`
-	SortOrder   int    `json:"sort_order"`
+	ID         string `json:"id"`
+	CategoryID string `json:"category_id"`
+	Title      string `json:"title"`
+	Hint       string `json:"hint"`
+	Difficulty string `json:"difficulty"`
+	SortOrder  int    `json:"sort_order"`
 	// IsPlanted gates whether this slot appears on /tracker. Defaults to
 	// false (omitted) for roadmap rows; flip to true in JSON when the
 	// matching exploit is actually wired into a handler.
@@ -127,17 +132,17 @@ func vulnerabilities(tx *sql.Tx) error {
 		return fmt.Errorf("decode vulnerabilities.json: %w", err)
 	}
 
-	// ON CONFLICT(id) DO UPDATE refreshes the descriptive columns from JSON
+	// ON CONFLICT(id) DO UPDATE refreshes the static columns from JSON
 	// but deliberately omits status/discovered_at/notes so a re-seed never
 	// resets crew progress. is_planted IS refreshed from JSON: it's a code-
 	// level fact (does the exploit exist?), not crew progress.
 	const stmt = `
-		INSERT INTO vulnerabilities (id, category_id, title, description, difficulty, sort_order, is_planted)
+		INSERT INTO vulnerabilities (id, category_id, title, hint, difficulty, sort_order, is_planted)
 		VALUES (?, ?, ?, ?, ?, ?, ?)
 		ON CONFLICT(id) DO UPDATE SET
 			category_id = excluded.category_id,
 			title       = excluded.title,
-			description = excluded.description,
+			hint        = excluded.hint,
 			difficulty  = excluded.difficulty,
 			sort_order  = excluded.sort_order,
 			is_planted  = excluded.is_planted
@@ -150,7 +155,7 @@ func vulnerabilities(tx *sql.Tx) error {
 		if v.IsPlanted {
 			planted = 1
 		}
-		if _, err := tx.Exec(stmt, v.ID, v.CategoryID, v.Title, v.Description, v.Difficulty, v.SortOrder, planted); err != nil {
+		if _, err := tx.Exec(stmt, v.ID, v.CategoryID, v.Title, v.Hint, v.Difficulty, v.SortOrder, planted); err != nil {
 			return fmt.Errorf("seed vuln %q: %w", v.ID, err)
 		}
 	}
@@ -162,6 +167,19 @@ func users(tx *sql.Tx) error {
 	// NOT update existing rows — once seeded, a password lives only in the
 	// DB, so an operator can change it without a code edit and the new
 	// value persists across reseeds.
+	//
+	// Exception: station_key is backfilled for existing rows that have the
+	// empty-string default (left by the ALTER TABLE migration). This keeps
+	// the exploit chain functional on databases created before the column
+	// was added.
+	for _, u := range defaultUsers {
+		if _, err := tx.Exec(
+			`UPDATE users SET station_key = ? WHERE username = ? AND station_key = ''`,
+			u.StationKey, u.Username,
+		); err != nil {
+			return fmt.Errorf("seed user %q station_key backfill: %w", u.Username, err)
+		}
+	}
 	for _, u := range defaultUsers {
 		var existing int
 		if err := tx.QueryRow(`SELECT COUNT(*) FROM users WHERE username = ?`, u.Username).Scan(&existing); err != nil {
@@ -180,8 +198,8 @@ func users(tx *sql.Tx) error {
 			admin = 1
 		}
 		if _, err := tx.Exec(
-			`INSERT INTO users (username, password_hash, is_admin) VALUES (?, ?, ?)`,
-			u.Username, string(hash), admin,
+			`INSERT INTO users (username, password_hash, is_admin, station_key) VALUES (?, ?, ?, ?)`,
+			u.Username, string(hash), admin, u.StationKey,
 		); err != nil {
 			return fmt.Errorf("seed user %q insert: %w", u.Username, err)
 		}

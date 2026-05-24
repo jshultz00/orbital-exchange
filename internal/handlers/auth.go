@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"crypto/rand"
 	"database/sql"
+	"encoding/hex"
 	"errors"
 	"log"
 	"net/http"
@@ -114,8 +116,15 @@ func (a *Auth) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	const insert = `INSERT INTO users (username, password_hash, is_admin) VALUES (?, ?, 0)`
-	res, err := a.DB.Exec(insert, username, string(hash))
+	key, err := generateStationKey()
+	if err != nil {
+		log.Printf("auth register station_key: %v", err)
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
+
+	const insert = `INSERT INTO users (username, password_hash, is_admin, station_key) VALUES (?, ?, 0, ?)`
+	res, err := a.DB.Exec(insert, username, string(hash), key)
 	if err != nil {
 		// SQLite UNIQUE violation: username already exists.
 		if strings.Contains(err.Error(), "UNIQUE") {
@@ -160,6 +169,15 @@ func (a *Auth) renderError(w http.ResponseWriter, r *http.Request, mode, msg str
 	data["Username"] = r.PostFormValue("username")
 	w.WriteHeader(http.StatusUnauthorized)
 	render(w, a.Views, "auth", data)
+}
+
+// generateStationKey returns a new random crew API token in the form OE-CRW-<20 hex chars>.
+func generateStationKey() (string, error) {
+	b := make([]byte, 10)
+	if _, err := rand.Read(b); err != nil {
+		return "", err
+	}
+	return "OE-CRW-" + hex.EncodeToString(b), nil
 }
 
 // validateRegistration enforces a minimal but real policy. Returns "" if OK,

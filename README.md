@@ -78,7 +78,7 @@ Seeded on first boot only — change a password in the DB and it persists across
 
 ### Adding a new planted vulnerability
 
-1. Append a row to [`internal/seed/vulnerabilities.json`](internal/seed/vulnerabilities.json) with a fresh slug (e.g. `a03-search-time-based-sqli`).
+1. Append a row to [`internal/seed/vulnerabilities.json`](internal/seed/vulnerabilities.json) with a fresh slug (e.g. `a03-search-time-based-sqli`) and a `hint`.
 2. Implement the planted vuln in the relevant handler — deliberately breaking the defensive default that's in place today.
 3. From the planting code path, call `POST /tracker/{your-slug}/discover` when the exploit's hidden flag condition is met (or update the row directly via SQL).
 

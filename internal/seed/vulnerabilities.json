@@ -3,7 +3,7 @@
     "id": "a01-airlock-manifest-override",
     "category_id": "a01",
     "title": "Override the airlock manifest",
-    "description": "Station Command's manifest endpoint exposes records by ID without checking who's asking. View a manifest entry that isn't yours.",
+    "hint": "Station Command's manifest endpoint exposes records by ID without checking who's asking. View a manifest entry that isn't yours.",
     "difficulty": "easy",
     "sort_order": 10,
     "is_planted": true
@@ -12,15 +12,25 @@
     "id": "a01-crew-roster-idor",
     "category_id": "a01",
     "title": "Read another crew member's roster entry",
-    "description": "The crew roster page returns any record when given a valid numeric ID. Find one you should not be able to read.",
+    "hint": "The crew roster detail page shows each crew member's station key but does not verify the viewer owns the record. Navigate to a crew ID that isn't yours and read their key.",
     "difficulty": "easy",
-    "sort_order": 20
+    "sort_order": 20,
+    "is_planted": true
+  },
+  {
+    "id": "a01-station-key-manifest-dump",
+    "category_id": "a01",
+    "title": "Exfiltrate the full manifest ledger with a stolen station key",
+    "hint": "The manifest export endpoint at /manifest/export?key=<token> authenticates by station key alone. An admin key returns every crew member's manifests. Obtain the admin's key and dump the ledger.",
+    "difficulty": "medium",
+    "sort_order": 25,
+    "is_planted": true
   },
   {
     "id": "a01-cart-price-tampering",
     "category_id": "a01",
     "title": "Tamper with the cart submission",
-    "description": "The cart endpoint trusts client-submitted prices and quantities. Pay less than you should.",
+    "hint": "The cart endpoint trusts client-submitted prices and quantities. Pay less than you should.",
     "difficulty": "medium",
     "sort_order": 30
   },
@@ -29,7 +39,7 @@
     "id": "a02-comms-beacon-cipher",
     "category_id": "a02",
     "title": "Crack the comms beacon cipher",
-    "description": "Outbound comms are signed with a homegrown algorithm using a short, predictable secret. Recover the secret.",
+    "hint": "Outbound comms are signed with a homegrown algorithm using a short, predictable secret. Recover the secret.",
     "difficulty": "hard",
     "sort_order": 10
   },
@@ -37,7 +47,7 @@
     "id": "a02-rememberme-plaintext",
     "category_id": "a02",
     "title": "Decode the remember-me beacon token",
-    "description": "The remember-me cookie holds crew credentials encoded but not encrypted. Reverse it.",
+    "hint": "The remember-me cookie holds crew credentials encoded but not encrypted. Reverse it.",
     "difficulty": "easy",
     "sort_order": 20
   },
@@ -45,7 +55,7 @@
     "id": "a02-weak-password-hash",
     "category_id": "a02",
     "title": "Reverse a legacy crew password hash",
-    "description": "An older crew table still stores passwords using a fast unsalted hash. Crack one.",
+    "hint": "An older crew table still stores passwords using a fast unsalted hash. Crack one.",
     "difficulty": "medium",
     "sort_order": 30
   },
@@ -54,7 +64,7 @@
     "id": "a03-requisition-search-sqli",
     "category_id": "a03",
     "title": "Spike the requisition query",
-    "description": "The commissary search bar concatenates crew input into a database query. Return rows the request was never meant to expose.",
+    "hint": "The commissary search bar concatenates crew input into a database query. Return rows the request was never meant to expose.",
     "difficulty": "easy",
     "sort_order": 10
   },
@@ -62,7 +72,7 @@
     "id": "a03-login-sqli",
     "category_id": "a03",
     "title": "Slip past the badge reader",
-    "description": "The badge-reader login uses string-built SQL. Authenticate without knowing a valid password.",
+    "hint": "The badge-reader login uses string-built SQL. Authenticate without knowing a valid password.",
     "difficulty": "medium",
     "sort_order": 20
   },
@@ -70,16 +80,17 @@
     "id": "a03-comms-stored-xss",
     "category_id": "a03",
     "title": "Inject a payload into the comms log",
-    "description": "The comms log renders submissions without escaping. Get arbitrary script to execute in another crew member's session.",
+    "hint": "The comms log renders submissions without escaping. Get arbitrary script to execute in another crew member's session.",
     "difficulty": "medium",
-    "sort_order": 30
+    "sort_order": 30,
+    "is_planted": true
   },
 
   {
     "id": "a04-allocation-race",
     "category_id": "a04",
     "title": "Race the supply allocation gate",
-    "description": "Crew are limited to one allocation per cycle, but the check and the write are not atomic. Get two.",
+    "hint": "Crew are limited to one allocation per cycle, but the check and the write are not atomic. Get two.",
     "difficulty": "hard",
     "sort_order": 10
   },
@@ -87,7 +98,7 @@
     "id": "a04-password-reset-flow",
     "category_id": "a04",
     "title": "Reuse a password-reset token",
-    "description": "Reset tokens are not invalidated after use. Reset the same account twice from one token.",
+    "hint": "Reset tokens are not invalidated after use. Reset the same account twice from one token.",
     "difficulty": "medium",
     "sort_order": 20
   },
@@ -95,7 +106,7 @@
     "id": "a04-promo-code-replay",
     "category_id": "a04",
     "title": "Replay a single-use ration voucher",
-    "description": "Voucher redemption checks validity but never marks codes spent. Apply the same voucher repeatedly.",
+    "hint": "Voucher redemption checks validity but never marks codes spent. Apply the same voucher repeatedly.",
     "difficulty": "easy",
     "sort_order": 30
   },
@@ -104,7 +115,7 @@
     "id": "a05-diagnostics-panel-exposed",
     "category_id": "a05",
     "title": "Pry open the diagnostics panel",
-    "description": "A debug-only route was never removed from production. Find it and read what it reveals.",
+    "hint": "A debug-only route was never removed from production. Find it and read what it reveals.",
     "difficulty": "easy",
     "sort_order": 10,
     "is_planted": true
@@ -113,15 +124,16 @@
     "id": "a05-default-station-credentials",
     "category_id": "a05",
     "title": "Sign in with default station credentials",
-    "description": "A factory-default service account was never rotated. Use it to reach Station Command.",
+    "hint": "A factory-default service account was never rotated. Use it to reach Station Command.",
     "difficulty": "easy",
-    "sort_order": 20
+    "sort_order": 20,
+    "is_planted": true
   },
   {
     "id": "a05-verbose-stack-traces",
     "category_id": "a05",
     "title": "Trigger a verbose telemetry dump",
-    "description": "Unhandled exceptions return full stack traces and file paths. Use one to map the codebase.",
+    "hint": "Unhandled exceptions return full stack traces and file paths. Use one to map the codebase.",
     "difficulty": "easy",
     "sort_order": 30
   },
@@ -130,7 +142,7 @@
     "id": "a06-deprecated-image-parser",
     "category_id": "a06",
     "title": "Salvage from a deprecated image parser",
-    "description": "Crew avatars are processed by a library with a known unpatched CVE. Exploit it via avatar upload.",
+    "hint": "Crew avatars are processed by a library with a known unpatched CVE. Exploit it via avatar upload.",
     "difficulty": "hard",
     "sort_order": 10
   },
@@ -138,7 +150,7 @@
     "id": "a06-known-cve-jwt",
     "category_id": "a06",
     "title": "Exploit the known JWT library flaw",
-    "description": "An outdated JWT library accepts the alg=none header. Forge an admin token.",
+    "hint": "An outdated JWT library accepts the alg=none header. Forge an admin token.",
     "difficulty": "medium",
     "sort_order": 20
   },
@@ -146,7 +158,7 @@
     "id": "a06-vulnerable-markdown",
     "category_id": "a06",
     "title": "Leverage the vulnerable markdown renderer",
-    "description": "The comms log uses an old markdown library with a published XSS bypass. Trigger it.",
+    "hint": "The comms log uses an old markdown library with a published XSS bypass. Trigger it.",
     "difficulty": "medium",
     "sort_order": 30
   },
@@ -155,7 +167,7 @@
     "id": "a07-session-fixation",
     "category_id": "a07",
     "title": "Hijack a session via fixation",
-    "description": "Session IDs are not rotated on login. Set a known ID in another crew member's browser and wait for them to authenticate.",
+    "hint": "Session IDs are not rotated on login. Set a known ID in another crew member's browser and wait for them to authenticate.",
     "difficulty": "hard",
     "sort_order": 10
   },
@@ -163,7 +175,7 @@
     "id": "a07-no-rate-limit-login",
     "category_id": "a07",
     "title": "Brute-force a crew password",
-    "description": "The badge reader has no rate limit or lockout. Recover a weak password by exhaustion.",
+    "hint": "The badge reader has no rate limit or lockout. Recover a weak password by exhaustion.",
     "difficulty": "easy",
     "sort_order": 20
   },
@@ -171,7 +183,7 @@
     "id": "a07-weak-password-policy",
     "category_id": "a07",
     "title": "Register with a trivial passphrase",
-    "description": "Registration accepts \"password\" and \"123456\". Confirm by registering one.",
+    "hint": "Registration accepts \"password\" and \"123456\". Confirm by registering one.",
     "difficulty": "easy",
     "sort_order": 30
   },
@@ -180,7 +192,7 @@
     "id": "a08-unsigned-cargo-import",
     "category_id": "a08",
     "title": "Tamper with a cargo ledger import",
-    "description": "Bulk cargo imports are parsed without verifying source or signature. Inject a forged manifest record.",
+    "hint": "Bulk cargo imports are parsed without verifying source or signature. Inject a forged manifest record.",
     "difficulty": "medium",
     "sort_order": 10
   },
@@ -188,7 +200,7 @@
     "id": "a08-unsafe-deserialization",
     "category_id": "a08",
     "title": "Pry open the unsafe deserialization path",
-    "description": "An admin import endpoint deserializes attacker-controlled data into runtime objects. Achieve code execution.",
+    "hint": "An admin import endpoint deserializes attacker-controlled data into runtime objects. Achieve code execution.",
     "difficulty": "hard",
     "sort_order": 20
   },
@@ -196,7 +208,7 @@
     "id": "a08-update-channel-unverified",
     "category_id": "a08",
     "title": "Slip a forged update through the patch channel",
-    "description": "The update mechanism fetches binaries over an unauthenticated channel. Substitute the payload.",
+    "hint": "The update mechanism fetches binaries over an unauthenticated channel. Substitute the payload.",
     "difficulty": "hard",
     "sort_order": 30
   },
@@ -205,7 +217,7 @@
     "id": "a09-comms-log-silent-delete",
     "category_id": "a09",
     "title": "Wipe the comms log trail",
-    "description": "Admin deletions of comms entries are not audited. Take a destructive action and leave nothing behind.",
+    "hint": "Admin deletions of comms entries are not audited. Take a destructive action and leave nothing behind.",
     "difficulty": "easy",
     "sort_order": 10
   },
@@ -213,7 +225,7 @@
     "id": "a09-no-audit-on-privileged-action",
     "category_id": "a09",
     "title": "Perform a privileged action with no trace",
-    "description": "Privileged endpoints do not write to any audit log. Demonstrate the gap by exercising one.",
+    "hint": "Privileged endpoints do not write to any audit log. Demonstrate the gap by exercising one.",
     "difficulty": "medium",
     "sort_order": 20
   },
@@ -221,7 +233,7 @@
     "id": "a09-log-injection-newline",
     "category_id": "a09",
     "title": "Forge a log entry via injection",
-    "description": "Inputs land in the log unescaped. Embed newlines and forge a fake entry attributed to another crew member.",
+    "hint": "Inputs land in the log unescaped. Embed newlines and forge a fake entry attributed to another crew member.",
     "difficulty": "medium",
     "sort_order": 30
   },
@@ -230,7 +242,7 @@
     "id": "a10-beacon-scan-internal-service",
     "category_id": "a10",
     "title": "Scan an external beacon URL",
-    "description": "The bridge offers a beacon-scan tool that fetches a crew-supplied URL. Point it at something internal it should not reach.",
+    "hint": "The bridge offers a beacon-scan tool that fetches a crew-supplied URL. Point it at something internal it should not reach.",
     "difficulty": "easy",
     "sort_order": 10
   },
@@ -238,7 +250,7 @@
     "id": "a10-beacon-cloud-metadata",
     "category_id": "a10",
     "title": "Reach the cloud metadata endpoint",
-    "description": "The beacon scanner has no IP allowlist. Use it to retrieve cloud metadata available only to the host itself.",
+    "hint": "The beacon scanner has no IP allowlist. Use it to retrieve cloud metadata available only to the host itself.",
     "difficulty": "medium",
     "sort_order": 20
   },
@@ -246,7 +258,7 @@
     "id": "a10-beacon-loopback-admin",
     "category_id": "a10",
     "title": "Bounce the beacon at the admin loopback",
-    "description": "The scanner can reach localhost-bound admin endpoints the public network cannot. Read one through it.",
+    "hint": "The scanner can reach localhost-bound admin endpoints the public network cannot. Read one through it.",
     "difficulty": "medium",
     "sort_order": 30
   }

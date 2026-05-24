@@ -33,13 +33,13 @@ type CategorySummary struct {
 
 // VulnRow is one planted-vulnerability row for the page.
 type VulnRow struct {
-	ID            string
-	CategoryID    string
-	Title         string
-	Description   string
-	Difficulty    string
-	Status        string
-	DiscoveredAt  string // formatted, "" if never
+	ID           string
+	CategoryID   string
+	Title        string
+	Hint         string
+	Difficulty   string
+	Status       string
+	DiscoveredAt string // formatted, "" if never
 }
 
 // View renders /tracker. Supports ?difficulty= and ?status= URL filters.
@@ -195,7 +195,7 @@ func (t *Tracker) loadCategories() ([]CategorySummary, error) {
 
 func (t *Tracker) loadVulns(difficulty, status string) ([]VulnRow, error) {
 	q := `
-		SELECT id, category_id, title, description, difficulty, status,
+		SELECT id, category_id, title, hint, difficulty, status,
 		       COALESCE(strftime('%Y-%m-%d %H:%M', discovered_at), '')
 		FROM vulnerabilities
 	`
@@ -223,7 +223,7 @@ func (t *Tracker) loadVulns(difficulty, status string) ([]VulnRow, error) {
 	var out []VulnRow
 	for rows.Next() {
 		var v VulnRow
-		if err := rows.Scan(&v.ID, &v.CategoryID, &v.Title, &v.Description, &v.Difficulty, &v.Status, &v.DiscoveredAt); err != nil {
+		if err := rows.Scan(&v.ID, &v.CategoryID, &v.Title, &v.Hint, &v.Difficulty, &v.Status, &v.DiscoveredAt); err != nil {
 			return nil, err
 		}
 		out = append(out, v)

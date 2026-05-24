@@ -2,8 +2,10 @@ package handlers
 
 import (
 	"database/sql"
+	"html/template"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/alexedwards/scs/v2"
 
@@ -26,11 +28,11 @@ type Comms struct {
 
 // CommsEntry is one row of the comms log for rendering.
 type CommsEntry struct {
-	ID         int64
-	Author     string
-	Body       string
-	CreatedAt  string // pre-formatted in SQL for simplicity
-	FromCrew   bool   // true if user_id is non-NULL — UI styles authed entries
+	ID        int64
+	Author    string
+	Body      template.HTML // PLANTED VULN a03-comms-stored-xss: rendered unescaped
+	CreatedAt string        // pre-formatted in SQL for simplicity
+	FromCrew  bool          // true if user_id is non-NULL — UI styles authed entries
 }
 
 // List renders /comms.
@@ -54,11 +56,13 @@ func (c *Comms) List(w http.ResponseWriter, r *http.Request) {
 	var entries []CommsEntry
 	for rows.Next() {
 		var e CommsEntry
-		if err := rows.Scan(&e.ID, &e.Author, &e.Body, &e.CreatedAt, &e.FromCrew); err != nil {
+		var bodyStr string
+		if err := rows.Scan(&e.ID, &e.Author, &bodyStr, &e.CreatedAt, &e.FromCrew); err != nil {
 			log.Printf("comms list scan: %v", err)
 			http.Error(w, "internal error", http.StatusInternalServerError)
 			return
 		}
+		e.Body = template.HTML(bodyStr) // PLANTED VULN: no escaping
 		entries = append(entries, e)
 	}
 
@@ -106,5 +110,42 @@ func (c *Comms) Submit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// XSS detection: look for script tags, event handlers, or other markup.
+	// PLANTED VULN a03-comms-stored-xss: if detected, flip the tracker row.
+	if detectXSSPattern(body) {
+		const flip = `
+			UPDATE vulnerabilities
+			SET status = 'discovered',
+			    discovered_at = CURRENT_TIMESTAMP
+			WHERE id = ? AND status = 'undiscovered'
+		`
+		if _, err := c.DB.Exec(flip, "a03-comms-stored-xss"); err != nil {
+			log.Printf("comms XSS discover flip: %v", err)
+		}
+	}
+
 	http.Redirect(w, r, "/comms", http.StatusSeeOther)
+}
+
+// detectXSSPattern checks for common XSS payloads in a string.
+func detectXSSPattern(s string) bool {
+	lower := strings.ToLower(s)
+	patterns := []string{
+		"<script",
+		"javascript:",
+		"onerror=",
+		"onload=",
+		"onclick=",
+		"onmouseover=",
+		"<iframe",
+		"<object",
+		"<embed",
+		"<img ",
+	}
+	for _, p := range patterns {
+		if strings.Contains(lower, p) {
+			return true
+		}
+	}
+	return false
 }

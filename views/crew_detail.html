@@ -1,0 +1,39 @@
+{{define "content"}}
+<section class="panel">
+    <p class="panel-title">Crew Member // Badge Roster</p>
+    <h1>{{.Crew.Username}}</h1>
+    <p class="readout muted">
+        Crew ID <span class="mono">#{{.Crew.ID}}</span> // Joined {{.Crew.CreatedAt}}.
+        {{if not .IsOwn}}<span class="amber">// VIEWING ANOTHER CREW MEMBER'S RECORD</span>{{end}}
+        {{if .Crew.IsAdmin}}<span class="green">// ADMIN PRIVILEGES</span>{{end}}
+    </p>
+
+    <table class="cart-table mono">
+        <tbody>
+            <tr>
+                <td>Username</td>
+                <td><strong>{{.Crew.Username}}</strong></td>
+            </tr>
+            <tr>
+                <td>Crew ID</td>
+                <td>#{{.Crew.ID}}</td>
+            </tr>
+            <tr>
+                <td>Rank</td>
+                <td>{{if .Crew.IsAdmin}}<span class="green">COMMAND</span>{{else}}<span class="muted">CREW</span>{{end}}</td>
+            </tr>
+            <tr>
+                <td>Station Key</td>
+                <td class="amber">{{.Crew.StationKey}}</td>
+            </tr>
+            <tr>
+                <td>Created</td>
+                <td>{{.Crew.CreatedAt}}</td>
+            </tr>
+        </tbody>
+    </table>
+    {{if .IsOwn}}
+    <p class="readout muted">Your station key authenticates you to the manifest export API at <span class="mono">/manifest/export?key=&lt;your-key&gt;</span>.</p>
+    {{end}}
+</section>
+{{end}}

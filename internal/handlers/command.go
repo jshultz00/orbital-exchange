@@ -24,12 +24,12 @@ type Command struct {
 
 // CommandStats captures dashboard counters in one query trip.
 type CommandStats struct {
-	Users         int
-	Products      int
-	CartItems     int
-	CommsEntries  int
-	Vulns         int
-	VulnsDone     int
+	Users        int
+	Products     int
+	CartItems    int
+	CommsEntries int
+	Vulns        int
+	VulnsDone    int
 }
 
 // CrewRow is one row of the crew roster table.
@@ -41,10 +41,24 @@ type CrewRow struct {
 }
 
 // Dashboard renders /command — placeholder Station Command home.
+// Planted A05 (default credentials): on first access by an admin, the
+// tracker row for "a05-default-station-credentials" flips to discovered.
 func (c *Command) Dashboard(w http.ResponseWriter, r *http.Request) {
 	user := requireAdmin(w, r, c.Session)
 	if user == nil {
 		return
+	}
+
+	// Flip the tracker row when an admin user accesses the command dashboard
+	// for the first time. Idempotent: the status guard only matches undiscovered.
+	const flip = `
+		UPDATE vulnerabilities
+		SET status = 'discovered',
+		    discovered_at = CURRENT_TIMESTAMP
+		WHERE id = ? AND status = 'undiscovered'
+	`
+	if _, err := c.DB.Exec(flip, "a05-default-station-credentials"); err != nil {
+		log.Printf("command dashboard discover flip: %v", err)
 	}
 
 	stats, err := c.loadStats()

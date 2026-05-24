@@ -61,7 +61,10 @@
                 <span class="pill pill-{{.Status}}">{{.Status}}</span>
                 {{if .DiscoveredAt}}<time class="mono muted">{{.DiscoveredAt}}</time>{{end}}
             </header>
-            <p class="tracker-desc">{{.Description}}</p>
+            <details class="tracker-hint">
+                <summary class="tracker-hint-toggle mono">Reveal hint</summary>
+                <p>{{.Hint}}</p>
+            </details>
             <div class="tracker-id mono muted">{{.ID}}</div>
         </li>
         {{end}}

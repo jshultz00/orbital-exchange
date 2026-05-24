@@ -63,8 +63,23 @@ func Open(path string) (*sql.DB, error) {
 // Each ALTER is run with its "duplicate column" error treated as success, so
 // the function is safe to run on every boot.
 func migrate(conn *sql.DB) error {
+	hasDescription, err := columnExists(conn, "vulnerabilities", "description")
+	if err != nil {
+		return err
+	}
+	hasHint, err := columnExists(conn, "vulnerabilities", "hint")
+	if err != nil {
+		return err
+	}
+	if hasDescription && !hasHint {
+		if _, err := conn.Exec(`ALTER TABLE vulnerabilities RENAME COLUMN description TO hint`); err != nil {
+			return fmt.Errorf("rename vulnerabilities.description to hint: %w", err)
+		}
+	}
+
 	alters := []string{
 		`ALTER TABLE vulnerabilities ADD COLUMN is_planted INTEGER NOT NULL DEFAULT 0`,
+		`ALTER TABLE users ADD COLUMN station_key TEXT NOT NULL DEFAULT ''`,
 	}
 	for _, stmt := range alters {
 		if _, err := conn.Exec(stmt); err != nil && !strings.Contains(err.Error(), "duplicate column") {
@@ -72,4 +87,26 @@ func migrate(conn *sql.DB) error {
 		}
 	}
 	return nil
+}
+
+func columnExists(conn *sql.DB, table, column string) (bool, error) {
+	rows, err := conn.Query(`PRAGMA table_info(` + table + `)`)
+	if err != nil {
+		return false, fmt.Errorf("inspect %s columns: %w", table, err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var cid int
+		var name, typ string
+		var notNull, pk int
+		var defaultValue any
+		if err := rows.Scan(&cid, &name, &typ, &notNull, &defaultValue, &pk); err != nil {
+			return false, fmt.Errorf("scan %s columns: %w", table, err)
+		}
+		if name == column {
+			return true, nil
+		}
+	}
+	return false, rows.Err()
 }

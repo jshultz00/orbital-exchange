@@ -78,6 +78,12 @@ func (d *Debug) Panel(w http.ResponseWriter, r *http.Request) {
 	}
 	b.WriteString("\n")
 
+	b.WriteString("[default credentials]\n")
+	b.WriteString("  Station Command:\n")
+	b.WriteString("    username: command\n")
+	b.WriteString("    password: stationcommand\n")
+	b.WriteString("\n")
+
 	b.WriteString("[hint]\n")
 	b.WriteString("  tracker entry: " + debugTrackerID + "\n")
 

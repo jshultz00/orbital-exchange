@@ -77,7 +77,12 @@ func main() {
 
 	manifest := &handlers.Manifest{DB: conn, Views: v, Session: sess}
 	mux.HandleFunc("GET /manifest", manifest.Index)
+	mux.HandleFunc("GET /manifest/export", manifest.Export)
 	mux.HandleFunc("GET /manifest/{id}", manifest.Detail)
+
+	crew := &handlers.Crew{DB: conn, Views: v, Session: sess}
+	mux.HandleFunc("GET /crew", crew.Index)
+	mux.HandleFunc("GET /crew/{id}", crew.Detail)
 
 	comms := &handlers.Comms{DB: conn, Views: v, Session: sess}
 	mux.HandleFunc("GET /comms", comms.List)
@@ -106,4 +111,3 @@ func main() {
 		log.Fatalf("server: %v", err)
 	}
 }
-

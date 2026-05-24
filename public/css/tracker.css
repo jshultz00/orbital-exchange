@@ -133,8 +133,22 @@
     font-weight: 500;
 }
 .tracker-row header time { margin-left: auto; font-size: 0.75rem; }
-.tracker-desc {
+.tracker-hint {
     margin: 0 0 0.45rem 0;
+}
+.tracker-hint-toggle {
+    width: fit-content;
+    cursor: pointer;
+    color: var(--cyan);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+.tracker-hint-toggle:hover {
+    color: var(--text);
+}
+.tracker-hint p {
+    margin: 0.45rem 0 0;
     color: var(--muted);
     font-size: 0.85rem;
     line-height: 1.5;
