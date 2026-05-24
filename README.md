@@ -33,14 +33,20 @@ ORBITAL_ADDR=":8080" ORBITAL_DB="data/dev.sqlite" go run ./cmd/server
 
 ## Default credentials
 
-| Account     | Username  | Password         | Role            |
-|-------------|-----------|------------------|-----------------|
-| Admin       | `command` | hidden           | Station Command |
-| Crew member | `ryland`  | `hailmary42`     | Standard crew   |
+| Account     | Username  | Password                  | Role            |
+|-------------|-----------|---------------------------|-----------------|
+| Admin       | `command` | Intentionally undisclosed | Station Command |
+| Crew member | `ryland`  | `hailmary42`              | Standard crew   |
 
-Seeded on first boot only — change a password in the DB and it persists across reseeds. To add more accounts, edit `defaultUsers` in [internal/seed/seed.go](internal/seed/seed.go).
+The Station Command password is intentionally undisclosed in docs; it is part of the training target. Seeded accounts are created on first boot only — change a password in the DB and it persists across reseeds. To add more accounts, edit `defaultUsers` in [internal/seed/seed.go](internal/seed/seed.go).
+
+## Spoiler policy
+
+This README is for running and extending the app, not solving it. It lists ordinary navigation and maintenance routes, but it does not disclose hidden paths, exploit mechanics, tokens, admin secrets, or exact trigger conditions. Use `/tracker` hints when you want a nudge during practice.
 
 ## Routes
+
+These are the normal app and maintenance surfaces. Some challenge-only behavior is intentionally omitted or described broadly.
 
 | Method | Path                              | Description |
 |--------|-----------------------------------|-------------|
@@ -51,7 +57,10 @@ Seeded on first boot only — change a password in the DB and it persists across
 | POST   | `/cart`                           | Add to cart (server validates product/qty) |
 | POST   | `/cart/{product_id}/remove`       | Remove a cart line |
 | GET    | `/manifest`                       | Your own requisition manifests (login required) |
-| GET    | `/manifest/{id}`                  | Manifest detail — **planted IDOR** (a01-airlock-manifest-override) |
+| GET    | `/manifest/{id}`                  | Manifest detail (login required) |
+| GET    | `/manifest/export`                | Manifest export API referenced in-app |
+| GET    | `/crew`                           | Crew roster (login required) |
+| GET    | `/crew/{id}`                      | Crew roster detail (login required) |
 | GET    | `/login`, `/register`             | Auth forms |
 | POST   | `/login`, `/register`, `/logout`  | Auth actions |
 | GET    | `/comms`                          | Comms log — public, anonymous posts allowed |
@@ -59,15 +68,14 @@ Seeded on first boot only — change a password in the DB and it persists across
 | GET    | `/command`                        | Station Command dashboard (admin only) |
 | GET    | `/tracker`                        | Vulnerability tracker — accepts `?difficulty=` and `?status=` filters |
 | POST   | `/tracker/reset`                  | Reset all tracker rows to `undiscovered` (admin only) |
-| POST   | `/tracker/{id}/discover`          | Flip one tracker row to `discovered` (open by design — called by future planting code) |
-| GET    | `/debug`                          | **Planted misconfiguration** (a05-diagnostics-panel-exposed) — no auth gate |
+| POST   | `/tracker/{id}/discover`          | Internal training hook for planted challenge code |
 
 ## Vulnerability Tracker
 
-`/tracker` is the registry every future spec appends to. The scaffold seeds:
+`/tracker` is the registry every future spec appends to. The tracker shows only planted rows and keeps each row's hint hidden until the user chooses **Reveal hint**. The scaffold seeds:
 
 - **10 OWASP 2021 categories** in `categories` table.
-- **30 planted-vulnerability slots** (3 per category, mixed easy/medium/hard) in `vulnerabilities` table — all initially `undiscovered`. These are the roadmap; each future increment plants the actual exploit code behind one slot and flips its status.
+- **30 vulnerability slots** (3 per category, mixed easy/medium/hard) in `vulnerabilities` table — roadmap rows stay hidden until their matching training surface is wired in.
 
 ### Two reset paths
 
@@ -80,7 +88,7 @@ Seeded on first boot only — change a password in the DB and it persists across
 
 1. Append a row to [`internal/seed/vulnerabilities.json`](internal/seed/vulnerabilities.json) with a fresh slug (e.g. `a03-search-time-based-sqli`) and a `hint`.
 2. Implement the planted vuln in the relevant handler — deliberately breaking the defensive default that's in place today.
-3. From the planting code path, call `POST /tracker/{your-slug}/discover` when the exploit's hidden flag condition is met (or update the row directly via SQL).
+3. From the planting code path, call `POST /tracker/{your-slug}/discover` when the hidden success condition is met (or update the row directly via SQL).
 
 The seeder upserts by `id`, preserving any existing progress fields. So you can edit JSON safely on a database that already has discovery state.
 
@@ -94,7 +102,7 @@ internal/
   seed/            # idempotent seed loader + JSON sources of truth
   session/         # scs session manager + key constants
   views/           # html/template loader (layout + page composition)
-  handlers/        # one file per route group: pages, catalog, auth, cart, comms, command, tracker
+  handlers/        # one file per route group: pages, catalog, auth, cart, crew, manifest, comms, command, tracker
 views/             # html/template files (layout + page bodies)
 public/
   css/             # theme.css + tracker.css
@@ -108,13 +116,6 @@ Module path: `github.com/jshultz00/orbital-exchange`.
 
 ## Status
 
-Scaffold complete. Vulnerabilities are planted one at a time; each one deviates from the defensive baseline (bcrypt, parameterized SQL, html/template auto-escaping, session-token rotation on auth, server-side price/stock validation, admin gating on privileged actions) and references the tracker row it satisfies.
+Scaffold complete. Vulnerabilities are planted one at a time; each one intentionally deviates from the defensive baseline and references the tracker row it satisfies.
 
-### Planted so far
-
-| Tracker row | OWASP | Difficulty | Surface |
-|---|---|---|---|
-| `a05-diagnostics-panel-exposed` | A05 | easy | `GET /debug` — unauthenticated diagnostics dump (env, runtime, usernames) |
-| `a01-airlock-manifest-override` | A01 | easy | `GET /manifest/{id}` — IDOR; no ownership check on lookup |
-
-Each planted handler flips its tracker row to `discovered` when its detection condition fires (e.g. a viewer pulls a manifest they don't own).
+Each planted handler flips its tracker row to `discovered` when its hidden success condition fires. The README avoids listing planted surfaces and solutions; use the app and tracker hints for practice.
