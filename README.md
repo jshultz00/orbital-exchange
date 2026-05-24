@@ -23,12 +23,12 @@ Prerequisites:
 Clone the public repository:
 
 ```sh
-git clone https://github.com/jshultz00/vulnscope.git
-cd vulnscope
+git clone https://github.com/jshultz00/orbital-exchange.git
+cd orbital-exchange
 go mod download
 ```
 
-If you downloaded the ZIP from GitHub instead, extract it, open a terminal in the extracted `vulnscope` directory, and run:
+If you downloaded the ZIP from GitHub instead, extract it, open a terminal in the extracted `orbital-exchange` directory, and run:
 
 ```sh
 go mod download
