@@ -16,7 +16,8 @@ import (
 	"github.com/jshultz00/orbital-exchange/internal/views"
 )
 
-// Beacon is the planted A01:2025 — SSRF handler. The "bridge beacon scanner"
+// Beacon is the planted A01:2025 — Broken Access Control handler (SSRF, merged
+// into A01 from A10:2021). The "bridge beacon scanner"
 // fetches an arbitrary crew-supplied URL server-side and renders the response
 // preview. No allowlist, no scheme restriction, no IP filtering — the whole
 // point of the exercise.
