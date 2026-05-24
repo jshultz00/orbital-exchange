@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -31,15 +32,18 @@ type Comms struct {
 type CommsEntry struct {
 	ID        int64
 	Author    string
-	Body      template.HTML // PLANTED VULN a03-comms-stored-xss: rendered unescaped
+	Body      template.HTML // PLANTED VULN a05-comms-stored-xss: rendered unescaped
+	Format    string        // 'raw' or 'markdown'
 	CreatedAt string        // pre-formatted in SQL for simplicity
 	FromCrew  bool          // true if user_id is non-NULL — UI styles authed entries
 }
 
+const vulnerableMarkdownTrackerID = "a03-vulnerable-markdown"
+
 // List renders /comms.
 func (c *Comms) List(w http.ResponseWriter, r *http.Request) {
 	const q = `
-		SELECT id, author, body,
+		SELECT id, author, body, format,
 		       strftime('%Y-%m-%d %H:%M', created_at) AS created_at,
 		       user_id IS NOT NULL AS from_crew
 		FROM comms_entries
@@ -58,12 +62,20 @@ func (c *Comms) List(w http.ResponseWriter, r *http.Request) {
 	for rows.Next() {
 		var e CommsEntry
 		var bodyStr string
-		if err := rows.Scan(&e.ID, &e.Author, &bodyStr, &e.CreatedAt, &e.FromCrew); err != nil {
+		if err := rows.Scan(&e.ID, &e.Author, &bodyStr, &e.Format, &e.CreatedAt, &e.FromCrew); err != nil {
 			log.Printf("comms list scan: %v", err)
 			http.Error(w, "internal error", http.StatusInternalServerError)
 			return
 		}
-		e.Body = template.HTML(bodyStr) // PLANTED VULN: no escaping
+		// PLANTED VULNS: 'raw' renders unescaped HTML (a05-comms-stored-xss);
+		// 'markdown' renders via the in-house markdown sanitizer that strips
+		// <script> tags but allows javascript: URL bypasses
+		// (a03-vulnerable-markdown).
+		if e.Format == "markdown" {
+			e.Body = renderVulnerableMarkdown(bodyStr)
+		} else {
+			e.Body = template.HTML(bodyStr)
+		}
 		entries = append(entries, e)
 	}
 
@@ -82,6 +94,10 @@ func (c *Comms) Submit(w http.ResponseWriter, r *http.Request) {
 	if body == "" {
 		http.Redirect(w, r, "/comms", http.StatusSeeOther)
 		return
+	}
+	format := r.PostFormValue("format")
+	if format != "markdown" {
+		format = "raw"
 	}
 
 	user := currentUser(r, c.Session)
@@ -103,25 +119,33 @@ func (c *Comms) Submit(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if _, err := c.DB.Exec(
-		`INSERT INTO comms_entries (user_id, author, body) VALUES (?, ?, ?)`,
-		userID, author, body,
+		`INSERT INTO comms_entries (user_id, author, body, format) VALUES (?, ?, ?, ?)`,
+		userID, author, body, format,
 	); err != nil {
 		log.Printf("comms submit insert: %v", err)
 		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
 
-	// XSS detection: look for script tags, event handlers, or other markup.
-	// PLANTED VULN a03-comms-stored-xss: if detected, flip the tracker row.
-	if detectXSSPattern(body) {
-		const flip = `
-			UPDATE vulnerabilities
-			SET status = 'discovered',
-			    discovered_at = CURRENT_TIMESTAMP
-			WHERE id = ? AND status = 'undiscovered'
-		`
-		if _, err := c.DB.Exec(flip, "a03-comms-stored-xss"); err != nil {
+	const flip = `
+		UPDATE vulnerabilities
+		SET status = 'discovered',
+		    discovered_at = CURRENT_TIMESTAMP
+		WHERE id = ? AND status = 'undiscovered'
+	`
+	// XSS detection (raw rendering path): look for script tags, event
+	// handlers, or other markup. PLANTED VULN a05-comms-stored-xss.
+	if format == "raw" && detectXSSPattern(body) {
+		if _, err := c.DB.Exec(flip, "a05-comms-stored-xss"); err != nil {
 			log.Printf("comms XSS discover flip: %v", err)
+		}
+	}
+	// Markdown-renderer bypass detection. PLANTED VULN a03-vulnerable-markdown:
+	// the in-house renderer strips <script> tags but lets javascript: URLs and
+	// event-handler attributes through the link/image syntax.
+	if format == "markdown" && detectMarkdownBypass(body) {
+		if _, err := c.DB.Exec(flip, vulnerableMarkdownTrackerID); err != nil {
+			log.Printf("comms markdown discover flip: %v", err)
 		}
 	}
 
@@ -165,6 +189,64 @@ func (c *Comms) Delete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, "/comms", http.StatusSeeOther)
+}
+
+// scriptTagRE strips <script>...</script> blocks (and bare opening tags)
+// from input, case-insensitively. The in-house markdown sanitizer treats
+// this as "enough" — but it doesn't validate URL schemes in the link/image
+// syntax that follows, so javascript: links and onerror handlers planted
+// through image syntax escape the gate. PLANTED VULN a03-vulnerable-markdown.
+var (
+	scriptTagRE   = regexp.MustCompile(`(?is)<\s*script.*?</\s*script\s*>|<\s*script[^>]*>`)
+	mdBoldRE      = regexp.MustCompile(`\*\*([^*]+)\*\*`)
+	mdItalicRE    = regexp.MustCompile(`\*([^*]+)\*`)
+	mdImageRE     = regexp.MustCompile(`!\[([^\]]*)\]\(([^)]+)\)`)
+	mdLinkRE      = regexp.MustCompile(`\[([^\]]+)\]\(([^)]+)\)`)
+	mdCodeRE      = regexp.MustCompile("`([^`]+)`")
+)
+
+// renderVulnerableMarkdown is the station's in-house markdown renderer.
+// It strips <script> tags (its sole sanitization) and then expands
+// **bold**, *italic*, `code`, ![alt](url), and [text](url). It does NOT
+// validate URL schemes — javascript: and data: links slip through, and the
+// image syntax preserves whatever the author crammed into the URL field,
+// including event-handler attributes. This mirrors a class of real-world
+// markdown CVEs (e.g. CVE-2018-3717 in marked, CVE-2021-44906 around
+// markdown-it sanitizer bypasses).
+func renderVulnerableMarkdown(s string) template.HTML {
+	out := scriptTagRE.ReplaceAllString(s, "")
+	out = mdImageRE.ReplaceAllString(out, `<img src="$2" alt="$1">`)
+	out = mdLinkRE.ReplaceAllString(out, `<a href="$2">$1</a>`)
+	out = mdBoldRE.ReplaceAllString(out, `<strong>$1</strong>`)
+	out = mdItalicRE.ReplaceAllString(out, `<em>$1</em>`)
+	out = mdCodeRE.ReplaceAllString(out, `<code>$1</code>`)
+	return template.HTML(out)
+}
+
+// detectMarkdownBypass returns true when the input shows a known sanitizer
+// bypass: a markdown link/image carrying a javascript:/data: URL, or an
+// image URL field stuffed with an event-handler attribute.
+func detectMarkdownBypass(s string) bool {
+	for _, m := range mdLinkRE.FindAllStringSubmatch(s, -1) {
+		if isDangerousURL(m[2]) {
+			return true
+		}
+	}
+	for _, m := range mdImageRE.FindAllStringSubmatch(s, -1) {
+		if isDangerousURL(m[2]) {
+			return true
+		}
+		lower := strings.ToLower(m[2])
+		if strings.Contains(lower, "onerror=") || strings.Contains(lower, "onload=") {
+			return true
+		}
+	}
+	return false
+}
+
+func isDangerousURL(u string) bool {
+	lower := strings.ToLower(strings.TrimSpace(u))
+	return strings.HasPrefix(lower, "javascript:") || strings.HasPrefix(lower, "data:text/html")
 }
 
 // detectXSSPattern checks for common XSS payloads in a string.

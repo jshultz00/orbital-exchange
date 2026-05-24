@@ -20,6 +20,11 @@
         <label>Message
             <textarea name="body" rows="4" maxlength="2000" required placeholder="Transmit..."></textarea>
         </label>
+        <fieldset class="comms-format">
+            <legend class="readout muted">Renderer</legend>
+            <label><input type="radio" name="format" value="raw" checked> Plain</label>
+            <label><input type="radio" name="format" value="markdown"> Markdown</label>
+        </fieldset>
         <div>
             <button class="btn" type="submit">Transmit</button>
         </div>

@@ -35,92 +35,37 @@
     "sort_order": 30,
     "is_planted": true
   },
-
   {
-    "id": "a02-comms-beacon-cipher",
-    "category_id": "a02",
-    "title": "Crack the comms beacon cipher",
-    "hint": "The outbound signing routine isn't a textbook algorithm — and a short, guessable secret makes brittle crypto.",
-    "difficulty": "hard",
-    "sort_order": 10,
-    "is_planted": true
-  },
-  {
-    "id": "a02-rememberme-plaintext",
-    "category_id": "a02",
-    "title": "Decode the remember-me beacon token",
-    "hint": "Convenience features sometimes trade safety for ease. Look closely at what the 'remember me' option leaves behind in your browser.",
+    "id": "a01-beacon-scan-internal-service",
+    "category_id": "a01",
+    "title": "Scan an external beacon URL",
+    "hint": "The bridge will fetch any URL you hand it. Pick one a public client could never reach directly.",
     "difficulty": "easy",
-    "sort_order": 20,
+    "sort_order": 40,
     "is_planted": true
   },
   {
-    "id": "a02-weak-password-hash",
+    "id": "a01-beacon-cloud-metadata",
+    "category_id": "a01",
+    "title": "Reach the cloud metadata endpoint",
+    "hint": "Cloud hosts expose information only to themselves at a well-known link-local address. The scanner doesn't filter where it goes.",
+    "difficulty": "medium",
+    "sort_order": 50,
+    "is_planted": true
+  },
+  {
+    "id": "a01-beacon-loopback-admin",
+    "category_id": "a01",
+    "title": "Bounce the beacon at the admin loopback",
+    "hint": "Some admin tooling binds to the loopback interface on purpose. The scanner sees what the public network cannot.",
+    "difficulty": "medium",
+    "sort_order": 60,
+    "is_planted": true
+  },
+
+  {
+    "id": "a02-diagnostics-panel-exposed",
     "category_id": "a02",
-    "title": "Reverse a legacy crew password hash",
-    "hint": "Older crew records were never migrated to modern password storage. If you can find them, the rest is a familiar offline exercise.",
-    "difficulty": "medium",
-    "sort_order": 30,
-    "is_planted": true
-  },
-
-  {
-    "id": "a03-requisition-search-sqli",
-    "category_id": "a03",
-    "title": "Spike the requisition query",
-    "hint": "The commissary search bar reaches the database directly. What happens when your query carries more than just words?",
-    "difficulty": "easy",
-    "sort_order": 10,
-    "is_planted": true
-  },
-  {
-    "id": "a03-login-sqli",
-    "category_id": "a03",
-    "title": "Slip past the badge reader",
-    "hint": "The badge reader trusts what you type more than it should. With the right input, the comparison becomes vacuously true.",
-    "difficulty": "medium",
-    "sort_order": 20,
-    "is_planted": true
-  },
-  {
-    "id": "a03-comms-stored-xss",
-    "category_id": "a03",
-    "title": "Inject a payload into the comms log",
-    "hint": "Comms entries are shown to other crew. When the renderer doesn't escape, what they see is whatever you wrote.",
-    "difficulty": "medium",
-    "sort_order": 30,
-    "is_planted": true
-  },
-
-  {
-    "id": "a04-allocation-race",
-    "category_id": "a04",
-    "title": "Race the supply allocation gate",
-    "hint": "The allocation gate reads, decides, then writes. Two requests arriving close enough together might both pass the gate.",
-    "difficulty": "hard",
-    "sort_order": 10
-  },
-  {
-    "id": "a04-password-reset-flow",
-    "category_id": "a04",
-    "title": "Reuse a password-reset token",
-    "hint": "A reset token should be one-shot. Try using one twice and see whether the system actually notices.",
-    "difficulty": "medium",
-    "sort_order": 20
-  },
-  {
-    "id": "a04-promo-code-replay",
-    "category_id": "a04",
-    "title": "Replay a single-use ration voucher",
-    "hint": "Vouchers are checked for validity but not necessarily for prior use. Once a code passes, what stops you from passing it again?",
-    "difficulty": "easy",
-    "sort_order": 30,
-    "is_planted": true
-  },
-
-  {
-    "id": "a05-diagnostics-panel-exposed",
-    "category_id": "a05",
     "title": "Pry open the diagnostics panel",
     "hint": "Engineering left a tool behind that should have been pulled before launch. Common ops-style paths are worth trying in your address bar.",
     "difficulty": "easy",
@@ -128,8 +73,8 @@
     "is_planted": true
   },
   {
-    "id": "a05-default-station-credentials",
-    "category_id": "a05",
+    "id": "a02-default-station-credentials",
+    "category_id": "a02",
     "title": "Sign in with default station credentials",
     "hint": "Factory-default service accounts get baked into vendor docs and quietly never rotated. Try the credentials a manual would ship with.",
     "difficulty": "easy",
@@ -137,8 +82,8 @@
     "is_planted": true
   },
   {
-    "id": "a05-verbose-stack-traces",
-    "category_id": "a05",
+    "id": "a02-verbose-stack-traces",
+    "category_id": "a02",
     "title": "Trigger a verbose telemetry dump",
     "hint": "Crash an endpoint with malformed input and see what the server volunteers about itself in the response.",
     "difficulty": "easy",
@@ -147,28 +92,114 @@
   },
 
   {
-    "id": "a06-deprecated-image-parser",
-    "category_id": "a06",
+    "id": "a03-deprecated-image-parser",
+    "category_id": "a03",
     "title": "Salvage from a deprecated image parser",
     "hint": "Avatar uploads pass through a parser whose advisories were never patched. The relevant CVE is public — find it.",
     "difficulty": "hard",
     "sort_order": 10
   },
   {
-    "id": "a06-known-cve-jwt",
-    "category_id": "a06",
+    "id": "a03-known-cve-jwt",
+    "category_id": "a03",
     "title": "Exploit the known JWT library flaw",
     "hint": "Some JWT libraries trust the token's own header more than they should. Inspect the algorithm field and ask what it would take to skip verification entirely.",
     "difficulty": "medium",
-    "sort_order": 20
+    "sort_order": 20,
+    "is_planted": true
   },
   {
-    "id": "a06-vulnerable-markdown",
-    "category_id": "a06",
+    "id": "a03-vulnerable-markdown",
+    "category_id": "a03",
     "title": "Leverage the vulnerable markdown renderer",
     "hint": "The comms log's markdown renderer is years behind. Public bypasses exist for that version — find one that slips past its sanitizer.",
     "difficulty": "medium",
-    "sort_order": 30
+    "sort_order": 30,
+    "is_planted": true
+  },
+
+  {
+    "id": "a04-comms-beacon-cipher",
+    "category_id": "a04",
+    "title": "Crack the comms beacon cipher",
+    "hint": "The outbound signing routine isn't a textbook algorithm — and a short, guessable secret makes brittle crypto.",
+    "difficulty": "hard",
+    "sort_order": 10,
+    "is_planted": true
+  },
+  {
+    "id": "a04-rememberme-plaintext",
+    "category_id": "a04",
+    "title": "Decode the remember-me beacon token",
+    "hint": "Convenience features sometimes trade safety for ease. Look closely at what the 'remember me' option leaves behind in your browser.",
+    "difficulty": "easy",
+    "sort_order": 20,
+    "is_planted": true
+  },
+  {
+    "id": "a04-weak-password-hash",
+    "category_id": "a04",
+    "title": "Reverse a legacy crew password hash",
+    "hint": "Older crew records were never migrated to modern password storage. If you can find them, the rest is a familiar offline exercise.",
+    "difficulty": "medium",
+    "sort_order": 30,
+    "is_planted": true
+  },
+
+  {
+    "id": "a05-requisition-search-sqli",
+    "category_id": "a05",
+    "title": "Spike the requisition query",
+    "hint": "The commissary search bar reaches the database directly. What happens when your query carries more than just words?",
+    "difficulty": "easy",
+    "sort_order": 10,
+    "is_planted": true
+  },
+  {
+    "id": "a05-login-sqli",
+    "category_id": "a05",
+    "title": "Slip past the badge reader",
+    "hint": "The badge reader trusts what you type more than it should. With the right input, the comparison becomes vacuously true.",
+    "difficulty": "medium",
+    "sort_order": 20,
+    "is_planted": true
+  },
+  {
+    "id": "a05-comms-stored-xss",
+    "category_id": "a05",
+    "title": "Inject a payload into the comms log",
+    "hint": "Comms entries are shown to other crew. When the renderer doesn't escape, what they see is whatever you wrote.",
+    "difficulty": "medium",
+    "sort_order": 30,
+    "is_planted": true
+  },
+
+  {
+    "id": "a06-allocation-race",
+    "category_id": "a06",
+    "title": "Race the supply allocation gate",
+    "hint": "The allocation gate reads, decides, then writes. Two requests arriving close enough together might both pass the gate.",
+    "difficulty": "hard",
+    "sort_order": 10,
+    "is_planted": true
+  },
+  {
+    "id": "a06-password-reset-flow",
+    "category_id": "a06",
+    "title": "Reuse a password-reset token",
+    "hint": "A reset token should be one-shot. Try using one twice and see whether the system actually notices.",
+    "difficulty": "medium",
+    "sort_order": 20,
+    "is_planted": true
+  },
+  {
+    "id": "a06-promo-code-replay",
+    "category_id": "a06",
+    "title": "Replay a single-use ration voucher",
+    "hint": "Vouchers are checked for validity but not necessarily for prior use. Once a code passes, what stops you from passing it again?",
+    "difficulty": "easy",
+    "sort_order": 30,
+    "is_planted": true
   },
 
   {
@@ -250,30 +281,27 @@
   },
 
   {
-    "id": "a10-beacon-scan-internal-service",
+    "id": "a10-unchecked-exception-info-leak",
     "category_id": "a10",
-    "title": "Scan an external beacon URL",
-    "hint": "The bridge will fetch any URL you hand it. Pick one a public client could never reach directly.",
-    "difficulty": "easy",
-    "sort_order": 10,
-    "is_planted": true
+    "title": "Provoke an unchecked exception that leaks state",
+    "hint": "Some code paths assume input is well-formed. Hand them something that isn't and see what the resulting failure reveals.",
+    "difficulty": "medium",
+    "sort_order": 10
   },
   {
-    "id": "a10-beacon-cloud-metadata",
+    "id": "a10-fail-open-authorization",
     "category_id": "a10",
-    "title": "Reach the cloud metadata endpoint",
-    "hint": "Cloud hosts expose information only to themselves at a well-known link-local address. The scanner doesn't filter where it goes.",
-    "difficulty": "medium",
-    "sort_order": 20,
-    "is_planted": true
+    "title": "Force an authorization check to fail open",
+    "hint": "When a permission check errors out, the safe answer is 'deny.' Find a check whose error path lets you through instead.",
+    "difficulty": "hard",
+    "sort_order": 20
   },
   {
-    "id": "a10-beacon-loopback-admin",
+    "id": "a10-partial-rollback-on-error",
     "category_id": "a10",
-    "title": "Bounce the beacon at the admin loopback",
-    "hint": "Some admin tooling binds to the loopback interface on purpose. The scanner sees what the public network cannot.",
-    "difficulty": "medium",
-    "sort_order": 30,
-    "is_planted": true
+    "title": "Exploit a partially-rolled-back transaction",
+    "hint": "Multi-step operations should be atomic. Crash one mid-flight and see what state the system is left in.",
+    "difficulty": "hard",
+    "sort_order": 30
   }
 ]

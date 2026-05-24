@@ -15,8 +15,8 @@ import (
 	"github.com/jshultz00/orbital-exchange/internal/views"
 )
 
-// Debug is the planted A05:2021 — Security Misconfiguration handler for the
-// tracker row "a05-diagnostics-panel-exposed".
+// Debug is the planted A02:2025 — Security Misconfiguration handler for the
+// tracker row "a02-diagnostics-panel-exposed".
 //
 // In-fiction: a forgotten engineering diagnostics panel was never removed from
 // the production build. Out-of-fiction: a /debug route that should never have
@@ -31,7 +31,7 @@ type Debug struct {
 	Session *scs.SessionManager
 }
 
-const debugTrackerID = "a05-diagnostics-panel-exposed"
+const debugTrackerID = "a02-diagnostics-panel-exposed"
 
 // Panel handles GET /debug. Returns a plain-text dump intentionally styled
 // like a stray ops endpoint someone forgot to delete.

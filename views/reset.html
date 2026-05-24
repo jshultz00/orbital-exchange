@@ -1,0 +1,47 @@
+{{define "content"}}
+<section class="panel auth-panel">
+    <p class="panel-title">Crew Passphrase Reset</p>
+    {{if eq .Mode "request"}}
+        <h1>Request a reset beacon.</h1>
+        <p class="readout muted">Enter your crew callsign to mint a one-time reset token.</p>
+
+        {{if .Error}}<p class="auth-error mono">! {{.Error}}</p>{{end}}
+        {{if .Info}}<p class="readout">{{.Info}}</p>{{end}}
+
+        {{if .Token}}
+        <p class="readout">Reset beacon issued for <span class="mono amber">{{.Username}}</span>.</p>
+        <p class="readout mono">token: {{.Token}}</p>
+        <p class="readout"><a href="{{.ConfirmPath}}">Continue to set a new passphrase &rarr;</a></p>
+        {{else}}
+        <form class="auth-form" method="POST" action="/reset">
+            <label>Callsign
+                <input type="text" name="username" value="{{.Username}}" autocomplete="username" required>
+            </label>
+            <div class="auth-actions">
+                <button class="btn" type="submit">Issue Reset Beacon</button>
+                <a class="readout muted" href="/login">Back to sign in &rarr;</a>
+            </div>
+        </form>
+        {{end}}
+    {{else}}
+        <h1>Set a new passphrase.</h1>
+        <p class="readout muted">Provide the reset token and choose a new passphrase.</p>
+
+        {{if .Error}}<p class="auth-error mono">! {{.Error}}</p>{{end}}
+        {{if .Success}}<p class="readout">{{.Success}}</p>{{end}}
+
+        <form class="auth-form" method="POST" action="/reset/confirm">
+            <label>Reset token
+                <input type="text" name="token" value="{{.Token}}" required>
+            </label>
+            <label>New passphrase
+                <input type="password" name="password" autocomplete="new-password" required>
+            </label>
+            <div class="auth-actions">
+                <button class="btn" type="submit">Reset Passphrase</button>
+                <a class="readout muted" href="/login">Back to sign in &rarr;</a>
+            </div>
+        </form>
+    {{end}}
+</section>
+{{end}}

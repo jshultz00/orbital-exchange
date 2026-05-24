@@ -42,7 +42,7 @@ type CrewRow struct {
 
 // Dashboard renders /command — placeholder Station Command home.
 // Planted A05 (default credentials): on first access by an admin, the
-// tracker row for "a05-default-station-credentials" flips to discovered.
+// tracker row for "a02-default-station-credentials" flips to discovered.
 func (c *Command) Dashboard(w http.ResponseWriter, r *http.Request) {
 	user := requireAdmin(w, r, c.Session)
 	if user == nil {
@@ -57,7 +57,7 @@ func (c *Command) Dashboard(w http.ResponseWriter, r *http.Request) {
 		    discovered_at = CURRENT_TIMESTAMP
 		WHERE id = ? AND status = 'undiscovered'
 	`
-	if _, err := c.DB.Exec(flip, "a05-default-station-credentials"); err != nil {
+	if _, err := c.DB.Exec(flip, "a02-default-station-credentials"); err != nil {
 		log.Printf("command dashboard discover flip: %v", err)
 	}
 

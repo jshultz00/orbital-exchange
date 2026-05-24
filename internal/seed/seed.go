@@ -107,6 +107,9 @@ func All(conn *sql.DB) error {
 	if err := legacyUsers(tx); err != nil {
 		return err
 	}
+	if err := supplyDrops(tx); err != nil {
+		return err
+	}
 
 	if err := tx.Commit(); err != nil {
 		return fmt.Errorf("seed commit: %w", err)
@@ -277,7 +280,7 @@ func manifests(tx *sql.Tx) error {
 
 // defaultVouchers seeds a small set of ration discount codes. Each carries a
 // flat credit discount. The redemption flow at POST /cart/voucher validates
-// codes but does not mark them spent — planted vuln a04-promo-code-replay.
+// codes but does not mark them spent — planted vuln a06-promo-code-replay.
 var defaultVouchers = []struct {
 	Code        string
 	Discount    int
@@ -289,7 +292,7 @@ var defaultVouchers = []struct {
 
 // defaultLegacyUsers seeds the decommissioned-crew archive. Hashes are
 // computed at seed time from these plaintexts so the file remains readable
-// and the crackable answers are explicit. PLANTED VULN a02-weak-password-hash:
+// and the crackable answers are explicit. PLANTED VULN a04-weak-password-hash:
 // raw unsalted MD5, by design.
 var defaultLegacyUsers = []struct {
 	Username string
@@ -310,6 +313,37 @@ func legacyUsers(tx *sql.Tx) error {
 		sum := md5.Sum([]byte(u.Password))
 		if _, err := tx.Exec(stmt, u.Username, hex.EncodeToString(sum[:]), u.Role); err != nil {
 			return fmt.Errorf("seed legacy user %q: %w", u.Username, err)
+		}
+	}
+	return nil
+}
+
+// defaultSupplyDrops seeds an active limited-capacity ration drop used by the
+// planted vuln a06-allocation-race. Capacity is intentionally small so the
+// race window matters: a single crew member firing concurrent claim POSTs can
+// pass the read-then-write gate more than once.
+var defaultSupplyDrops = []struct {
+	Slug        string
+	Name        string
+	Description string
+	Capacity    int
+}{
+	{
+		Slug:        "cycle-412-ration-drop",
+		Name:        "Cycle 412 // Emergency ration drop",
+		Description: "Limited-run ration allocation. One pack per crew member while the drop is open.",
+		Capacity:    3,
+	},
+}
+
+func supplyDrops(tx *sql.Tx) error {
+	const stmt = `
+		INSERT OR IGNORE INTO supply_drops (slug, name, description, capacity, remaining, active)
+		VALUES (?, ?, ?, ?, ?, 1)
+	`
+	for _, d := range defaultSupplyDrops {
+		if _, err := tx.Exec(stmt, d.Slug, d.Name, d.Description, d.Capacity, d.Capacity); err != nil {
+			return fmt.Errorf("seed supply drop %q: %w", d.Slug, err)
 		}
 	}
 	return nil

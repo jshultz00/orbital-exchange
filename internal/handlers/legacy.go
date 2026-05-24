@@ -15,7 +15,7 @@ import (
 
 // Legacy serves the decommissioned-crew archive: a public dump of
 // historical roster rows whose passwords are stored as raw unsalted MD5
-// hashes. PLANTED VULN a02-weak-password-hash. The archive page lists
+// hashes. PLANTED VULN a04-weak-password-hash. The archive page lists
 // every record (username + hash) and a "verify identity" form. Submitting
 // a plaintext whose MD5 matches any listed hash flips the tracker.
 type Legacy struct {
@@ -24,7 +24,7 @@ type Legacy struct {
 	Session *scs.SessionManager
 }
 
-const weakPasswordHashTrackerID = "a02-weak-password-hash"
+const weakPasswordHashTrackerID = "a04-weak-password-hash"
 
 type legacyRow struct {
 	Username string

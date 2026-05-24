@@ -14,7 +14,7 @@ import (
 )
 
 // Telemetry is the planted A05 (Security Misconfiguration) entry point for
-// "a05-verbose-stack-traces". The route deliberately offers a knob the crew
+// "a02-verbose-stack-traces". The route deliberately offers a knob the crew
 // can wiggle into a runtime panic; the global Recover middleware then dumps
 // the full Go stack trace (with file paths and line numbers) straight into
 // the HTTP response. Together they teach the lesson that production servers
@@ -25,7 +25,7 @@ type Telemetry struct {
 	Session *scs.SessionManager
 }
 
-const verboseStackTrackerID = "a05-verbose-stack-traces"
+const verboseStackTrackerID = "a02-verbose-stack-traces"
 
 // Cycle handles GET /telemetry. With no ?cycle= it explains the endpoint.
 // With a valid integer it returns a small summary. With a non-integer (e.g.
@@ -52,7 +52,7 @@ func (t *Telemetry) Cycle(w http.ResponseWriter, r *http.Request) {
 
 // Recover is the global middleware that catches panics in any handler and
 // writes a verbose stack trace (plus request metadata) to the response.
-// Wrap this around the whole mux. Flips the a05-verbose-stack-traces tracker
+// Wrap this around the whole mux. Flips the a02-verbose-stack-traces tracker
 // row the first time it catches anything.
 func Recover(db *sql.DB, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

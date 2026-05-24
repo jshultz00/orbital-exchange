@@ -19,7 +19,7 @@ import (
 // promoReplayTrackerID is the planted A04 (Insecure Design) row flipped when
 // a crew member redeems the same voucher code more than once. The redemption
 // flow validates the code but never marks it spent.
-const promoReplayTrackerID = "a04-promo-code-replay"
+const promoReplayTrackerID = "a06-promo-code-replay"
 
 // cartTamperTrackerID is the planted A01 row flipped when a checkout submits
 // a unit price or qty lower than the canonical product value in the DB.

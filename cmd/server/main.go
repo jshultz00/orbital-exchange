@@ -69,11 +69,27 @@ func main() {
 	mux.HandleFunc("GET /register", auth.RegisterForm)
 	mux.HandleFunc("POST /register", auth.Register)
 	mux.HandleFunc("POST /logout", auth.Logout)
-	// Planted vuln a02-rememberme-plaintext: /remember-me decodes the cookie
+
+	// Planted vuln a06-password-reset-flow: the confirm handler validates
+	// the reset token but never marks it spent, so a single token can reset
+	// the password more than once.
+	reset := &handlers.Reset{DB: conn, Views: v, Session: sess}
+	mux.HandleFunc("GET /reset", reset.RequestForm)
+	mux.HandleFunc("POST /reset", reset.Request)
+	mux.HandleFunc("GET /reset/confirm", reset.ConfirmForm)
+	mux.HandleFunc("POST /reset/confirm", reset.Confirm)
+
+	// Planted vuln a03-known-cve-jwt: the shuttle-pass verifier honors the
+	// token's own `alg` header — a token with `alg: none` bypasses the
+	// signature check entirely.
+	shuttle := &handlers.Shuttle{DB: conn, Views: v, Session: sess}
+	mux.HandleFunc("GET /shuttle", shuttle.Page)
+	mux.HandleFunc("POST /shuttle/verify", shuttle.Verify)
+	// Planted vuln a04-rememberme-plaintext: /remember-me decodes the cookie
 	// and reveals the plaintext payload (username + station_key).
 	mux.HandleFunc("GET /remember-me", auth.RememberMe)
 
-	// Planted vuln a03-login-sqli: the express badge reader builds its
+	// Planted vuln a05-login-sqli: the express badge reader builds its
 	// lookup query by string concatenation, so the WHERE clause can be
 	// short-circuited with the right input.
 	badge := &handlers.Badge{DB: conn, Views: v, Session: sess}
@@ -84,7 +100,7 @@ func main() {
 	mux.HandleFunc("GET /cart", cart.View)
 	mux.HandleFunc("POST /cart", cart.Add)
 	mux.HandleFunc("POST /cart/{product_id}/remove", cart.Remove)
-	// Planted vuln a04-promo-code-replay: voucher redemption validates the
+	// Planted vuln a06-promo-code-replay: voucher redemption validates the
 	// code but never marks it spent, so a single code can be re-applied.
 	mux.HandleFunc("POST /cart/voucher", cart.ApplyVoucher)
 	// Planted vuln a01-cart-price-tampering: checkout reads per-line
@@ -111,34 +127,41 @@ func main() {
 	command := &handlers.Command{DB: conn, Views: v, Session: sess}
 	mux.HandleFunc("GET /command", command.Dashboard)
 
-	// Planted vuln a10-beacon-scan-*: SSRF via an unrestricted server-side
+	// Planted vuln a01-beacon-scan-*: SSRF via an unrestricted server-side
 	// URL fetcher exposed to any logged-in crew member.
 	beacon := &handlers.Beacon{DB: conn, Views: v, Session: sess}
 	mux.HandleFunc("GET /bridge/beacon-scan", beacon.Scan)
+
+	// Planted vuln a06-allocation-race: the supply-drop claim handler reads
+	// remaining stock and "have you claimed?" then sleeps then writes —
+	// outside a transaction, so concurrent POSTs can both pass the gate.
+	supply := &handlers.Supply{DB: conn, Views: v, Session: sess}
+	mux.HandleFunc("GET /bridge/supply-drop", supply.View)
+	mux.HandleFunc("POST /bridge/supply-drop/claim", supply.Claim)
 
 	tracker := &handlers.Tracker{DB: conn, Views: v, Session: sess}
 	mux.HandleFunc("GET /tracker", tracker.View)
 	mux.HandleFunc("POST /tracker/reset", tracker.Reset)
 	mux.HandleFunc("POST /tracker/{id}/discover", tracker.Discover)
 
-	// Planted vuln a05-diagnostics-panel-exposed: a debug route deliberately
+	// Planted vuln a02-diagnostics-panel-exposed: a debug route deliberately
 	// shipped with no auth gate. Discovery flips the tracker row on first hit.
 	debug := &handlers.Debug{DB: conn, Views: v, Session: sess}
 	mux.HandleFunc("GET /debug", debug.Panel)
 
-	// Planted vuln a05-verbose-stack-traces: /telemetry panics on bad input
+	// Planted vuln a02-verbose-stack-traces: /telemetry panics on bad input
 	// and the global Recover middleware dumps the full stack into the response.
 	telemetry := &handlers.Telemetry{DB: conn, Views: v, Session: sess}
 	mux.HandleFunc("GET /telemetry", telemetry.Cycle)
 
-	// Planted vuln a02-weak-password-hash: the decommissioned crew archive
+	// Planted vuln a04-weak-password-hash: the decommissioned crew archive
 	// dumps unsalted MD5 password digests and exposes a verifier that flips
 	// the tracker when any plaintext is cracked.
 	legacy := &handlers.Legacy{DB: conn, Views: v, Session: sess}
 	mux.HandleFunc("GET /archive", legacy.Index)
 	mux.HandleFunc("POST /archive/verify", legacy.Verify)
 
-	// Planted vuln a02-comms-beacon-cipher: outbound beacons are signed by
+	// Planted vuln a04-comms-beacon-cipher: outbound beacons are signed by
 	// a custom (non-HMAC) MAC routine with a short shared secret. The page
 	// publishes the spec and recent beacons so the secret falls to offline
 	// brute force; submitting it to the verifier flips the tracker.

@@ -16,15 +16,15 @@ import (
 	"github.com/jshultz00/orbital-exchange/internal/views"
 )
 
-// Beacon is the planted A10:2021 — SSRF handler. The "bridge beacon scanner"
+// Beacon is the planted A01:2025 — SSRF handler. The "bridge beacon scanner"
 // fetches an arbitrary crew-supplied URL server-side and renders the response
 // preview. No allowlist, no scheme restriction, no IP filtering — the whole
 // point of the exercise.
 //
 // Tracker rows flipped on the way out:
-//   - a10-beacon-scan-internal-service — any private / loopback / link-local target
-//   - a10-beacon-cloud-metadata        — IMDS-style hosts (169.254.169.254, metadata.google.internal)
-//   - a10-beacon-loopback-admin        — loopback target that surfaces admin-only content
+//   - a01-beacon-scan-internal-service — any private / loopback / link-local target
+//   - a01-beacon-cloud-metadata        — IMDS-style hosts (169.254.169.254, metadata.google.internal)
+//   - a01-beacon-loopback-admin        — loopback target that surfaces admin-only content
 type Beacon struct {
 	DB      *sql.DB
 	Views   *views.Views
@@ -32,9 +32,9 @@ type Beacon struct {
 }
 
 const (
-	beaconInternalTrackerID = "a10-beacon-scan-internal-service"
-	beaconMetadataTrackerID = "a10-beacon-cloud-metadata"
-	beaconLoopbackTrackerID = "a10-beacon-loopback-admin"
+	beaconInternalTrackerID = "a01-beacon-scan-internal-service"
+	beaconMetadataTrackerID = "a01-beacon-cloud-metadata"
+	beaconLoopbackTrackerID = "a01-beacon-loopback-admin"
 
 	beaconMaxBytes  = 16 * 1024
 	beaconHTTPLimit = 5 * time.Second

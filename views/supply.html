@@ -1,0 +1,46 @@
+{{define "content"}}
+<section class="panel">
+    <p class="panel-title">Bridge // Supply Allocation</p>
+    <h1>Cycle Ration Drop</h1>
+    {{if .Drop}}
+        <p class="readout">{{.Drop.Description}}</p>
+        <dl class="readout mono">
+            <dt>DROP</dt><dd>{{.Drop.Name}}</dd>
+            <dt>CAPACITY</dt><dd>{{.Drop.Capacity}}</dd>
+            <dt>REMAINING</dt><dd class="amber">{{.Drop.Remaining}}</dd>
+            <dt>YOUR CLAIMS</dt><dd>{{.Drop.YouClaimed}}</dd>
+            <dt>TOTAL CLAIMS</dt><dd>{{.Drop.TotalClaims}}</dd>
+        </dl>
+        <form method="POST" action="/bridge/supply-drop/claim">
+            <button type="submit">Claim ration pack</button>
+        </form>
+        <p class="muted mono">Allocation rules: one pack per crew member while the drop is open.</p>
+    {{else}}
+        <p class="readout">No active supply drop on the schedule.</p>
+    {{end}}
+</section>
+
+{{if .Drop}}
+{{if .Drop.Claims}}
+<section class="panel">
+    <p class="panel-title">Claim Log</p>
+    <table class="mono">
+        <thead>
+            <tr>
+                <th>Crew</th>
+                <th>Claimed at</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{range .Drop.Claims}}
+            <tr>
+                <td>{{.Username}}</td>
+                <td>{{.ClaimedAt}}</td>
+            </tr>
+            {{end}}
+        </tbody>
+    </table>
+</section>
+{{end}}
+{{end}}
+{{end}}

@@ -36,10 +36,10 @@ type Auth struct {
 const bcryptCost = 12
 const weakPasswordPolicyTrackerID = "a07-weak-password-policy"
 const noRateLimitTrackerID = "a07-no-rate-limit-login"
-const rememberMeTrackerID = "a02-rememberme-plaintext"
+const rememberMeTrackerID = "a04-rememberme-plaintext"
 
 // rememberMeCookie is the plaintext-encoded "stay signed in" cookie. PLANTED
-// VULN a02-rememberme-plaintext: the value is base64(username:station_key) —
+// VULN a04-rememberme-plaintext: the value is base64(username:station_key) —
 // encoded, not encrypted, not signed.
 const rememberMeCookie = "oe_remember"
 
@@ -166,7 +166,7 @@ func (a *Auth) Login(w http.ResponseWriter, r *http.Request) {
 	a.Session.Put(r.Context(), session.KeyIsAdmin, isAdmin == 1)
 	a.Session.Put(r.Context(), session.KeyFlash, "Signed in as "+uname+".")
 
-	// PLANTED VULN a02-rememberme-plaintext: if the crew member ticks "remember
+	// PLANTED VULN a04-rememberme-plaintext: if the crew member ticks "remember
 	// me", we issue a cookie holding base64(username:station_key) — encoded,
 	// not encrypted or signed. Anyone who reads the cookie sees the credential.
 	if r.PostFormValue("remember") != "" {
@@ -187,7 +187,7 @@ func (a *Auth) Login(w http.ResponseWriter, r *http.Request) {
 
 // RememberMe handles GET /remember-me. It reads the oe_remember cookie,
 // decodes its base64 payload, and reveals the plaintext (username + station
-// key) to the caller. PLANTED VULN a02-rememberme-plaintext — the act of
+// key) to the caller. PLANTED VULN a04-rememberme-plaintext — the act of
 // successfully decoding a real crew member's token flips the tracker.
 func (a *Auth) RememberMe(w http.ResponseWriter, r *http.Request) {
 	c, err := r.Cookie(rememberMeCookie)

@@ -80,6 +80,7 @@ func migrate(conn *sql.DB) error {
 	alters := []string{
 		`ALTER TABLE vulnerabilities ADD COLUMN is_planted INTEGER NOT NULL DEFAULT 0`,
 		`ALTER TABLE users ADD COLUMN station_key TEXT NOT NULL DEFAULT ''`,
+		`ALTER TABLE comms_entries ADD COLUMN format TEXT NOT NULL DEFAULT 'raw'`,
 	}
 	for _, stmt := range alters {
 		if _, err := conn.Exec(stmt); err != nil && !strings.Contains(err.Error(), "duplicate column") {

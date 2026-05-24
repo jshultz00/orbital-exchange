@@ -12,8 +12,8 @@ import (
 	"github.com/jshultz00/orbital-exchange/internal/views"
 )
 
-// CommsBeacon is the planted A02:2021 — Cryptographic Failures handler for
-// a02-comms-beacon-cipher. The station broadcasts outbound "comms beacons"
+// CommsBeacon is the planted A04:2025 — Cryptographic Failures handler for
+// a04-comms-beacon-cipher. The station broadcasts outbound "comms beacons"
 // signed by a homegrown MAC routine and a short shared secret. The page
 // publishes the spec alongside recent beacons so any crew member can
 // independently verify authenticity — and brute-force the secret offline.
@@ -24,9 +24,9 @@ type CommsBeacon struct {
 }
 
 const (
-	commsBeaconTrackerID = "a02-comms-beacon-cipher"
+	commsBeaconTrackerID = "a04-comms-beacon-cipher"
 
-	// PLANTED VULN a02-comms-beacon-cipher: a short, guessable shared
+	// PLANTED VULN a04-comms-beacon-cipher: a short, guessable shared
 	// secret used to MAC every outbound beacon. Combined with the
 	// published, non-HMAC signing routine below, the whole scheme falls
 	// to an offline dictionary or sub-second brute force.

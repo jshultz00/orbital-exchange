@@ -119,7 +119,7 @@ These are the normal app and maintenance surfaces. Some challenge-only behavior 
 
 `/tracker` is the registry every future spec appends to. The tracker shows only planted rows and keeps each row's hint hidden until the user chooses **Reveal hint**. The scaffold seeds:
 
-- **10 OWASP 2021 categories** in `categories` table.
+- **10 OWASP 2025 categories** in `categories` table.
 - **30 vulnerability slots** (3 per category, mixed easy/medium/hard) in `vulnerabilities` table — roadmap rows stay hidden until their matching training surface is wired in.
 
 ### Two reset paths
@@ -131,7 +131,7 @@ These are the normal app and maintenance surfaces. Some challenge-only behavior 
 
 ### Adding a new planted vulnerability
 
-1. Append a row to [`internal/seed/vulnerabilities.json`](internal/seed/vulnerabilities.json) with a fresh slug (e.g. `a03-search-time-based-sqli`) and a `hint`.
+1. Append a row to [`internal/seed/vulnerabilities.json`](internal/seed/vulnerabilities.json) with a fresh slug (e.g. `a05-search-time-based-sqli`) and a `hint`.
 2. Implement the planted vuln in the relevant handler — deliberately breaking the defensive default that's in place today.
 3. From the planting code path, call `POST /tracker/{your-slug}/discover` when the hidden success condition is met (or update the row directly via SQL).
 

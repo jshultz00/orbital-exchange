@@ -1,0 +1,45 @@
+{{define "content"}}
+<section class="panel">
+    <p class="panel-title">Bridge :: Shuttle Pass Verifier</p>
+    <h1>Show your pass.</h1>
+    <p class="readout muted">
+        Shuttle passes are JSON Web Tokens issued by the bridge. The verifier
+        below parses any candidate pass and reports the claims it carries.
+        Token format: <code>header.payload.signature</code>, base64url.
+        Signing: HS256.
+    </p>
+
+    {{if .Token}}
+    <p class="readout">Your current shuttle pass:</p>
+    <pre class="mono">{{.Token}}</pre>
+    <p class="readout muted">Claims: sub={{.Claims.Sub}} admin={{.Claims.Admin}} iat={{.Claims.Iat}}</p>
+    {{else}}
+    <p class="readout muted">Sign in to mint a pass for your crew record.</p>
+    {{end}}
+</section>
+
+<section class="panel">
+    <p class="panel-title">Verify a Pass</p>
+
+    {{if .VerifyError}}<p class="auth-error mono">! {{.VerifyError}}</p>{{end}}
+    {{if .VerifySuccess}}<p class="readout">{{.VerifySuccess}}</p>{{end}}
+    {{if .VerifiedClaims}}
+    <p class="readout">Decoded claims:</p>
+    <ul class="readout">
+        <li>sub: <span class="mono amber">{{.VerifiedClaims.Sub}}</span></li>
+        <li>admin: <span class="mono amber">{{.VerifiedClaims.Admin}}</span></li>
+        <li>iat: <span class="mono">{{.VerifiedClaims.Iat}}</span></li>
+        <li>alg: <span class="mono">{{.VerifiedAlg}}</span></li>
+    </ul>
+    {{end}}
+
+    <form method="POST" action="/shuttle/verify">
+        <label>Pass token
+            <textarea name="token" rows="4" required>{{.AttemptToken}}</textarea>
+        </label>
+        <div>
+            <button class="btn" type="submit">Verify Pass</button>
+        </div>
+    </form>
+</section>
+{{end}}

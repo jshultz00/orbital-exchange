@@ -13,7 +13,7 @@ import (
 	"github.com/jshultz00/orbital-exchange/internal/views"
 )
 
-// Badge is the planted A03:2021 — Injection handler for a03-login-sqli. It
+// Badge is the planted A05:2025 — Injection handler for a05-login-sqli. It
 // exposes the station's "express badge reader" — a quick-login path that
 // trades the passphrase for a station-issued badge code (the same value as
 // the user's station_key). The lookup query interpolates both fields
@@ -24,7 +24,7 @@ type Badge struct {
 	Session *scs.SessionManager
 }
 
-const loginSQLiTrackerID = "a03-login-sqli"
+const loginSQLiTrackerID = "a05-login-sqli"
 
 // Form renders GET /badge — the express badge reader sign-in form.
 func (b *Badge) Form(w http.ResponseWriter, r *http.Request) {
@@ -32,7 +32,7 @@ func (b *Badge) Form(w http.ResponseWriter, r *http.Request) {
 	render(w, b.Views, "badge", data)
 }
 
-// Submit handles POST /badge. PLANTED VULN a03-login-sqli: the WHERE clause
+// Submit handles POST /badge. PLANTED VULN a05-login-sqli: the WHERE clause
 // is built by string concatenation, so input like
 //
 //	callsign:  command' --
@@ -48,7 +48,7 @@ func (b *Badge) Submit(w http.ResponseWriter, r *http.Request) {
 	callsign := r.PostFormValue("callsign")
 	badge := r.PostFormValue("badge")
 
-	// PLANTED VULN a03-login-sqli: raw string interpolation. The whole point
+	// PLANTED VULN a05-login-sqli: raw string interpolation. The whole point
 	// of the lesson — never do this. Use parameter placeholders instead.
 	query := fmt.Sprintf(
 		`SELECT id, username, is_admin FROM users WHERE username = '%s' AND station_key = '%s' LIMIT 1`,

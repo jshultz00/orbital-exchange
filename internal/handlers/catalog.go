@@ -18,7 +18,7 @@ import (
 // requisitionSearchTrackerID is the planted A03 (Injection) row flipped when
 // the catalog search query contains classic SQL-injection markers. The search
 // box concatenates raw input into the WHERE clause by design.
-const requisitionSearchTrackerID = "a03-requisition-search-sqli"
+const requisitionSearchTrackerID = "a05-requisition-search-sqli"
 
 // Catalog handles browsing the commissary inventory.
 //
