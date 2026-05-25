@@ -6,7 +6,8 @@
     "hint": "Manifest records are addressed by ID right in the URL. What stops you from typing one that isn't yours?",
     "difficulty": "easy",
     "sort_order": 10,
-    "is_planted": true
+    "is_planted": true,
+    "cwe": { "id": "CWE-639", "name": "Authorization Bypass Through User-Controlled Key" }
   },
   {
     "id": "a01-crew-roster-idor",
@@ -15,7 +16,8 @@
     "hint": "Each crew profile page surfaces sensitive details. The URL tells you which crew member you're looking at — what if it didn't have to be yours?",
     "difficulty": "easy",
     "sort_order": 20,
-    "is_planted": true
+    "is_planted": true,
+    "cwe": { "id": "CWE-639", "name": "Authorization Bypass Through User-Controlled Key" }
   },
   {
     "id": "a01-station-key-manifest-dump",
@@ -24,7 +26,8 @@
     "hint": "Manifest export accepts a token in place of a session. Not every token opens the same doors — find one that opens more than yours.",
     "difficulty": "medium",
     "sort_order": 25,
-    "is_planted": true
+    "is_planted": true,
+    "cwe": { "id": "CWE-285", "name": "Improper Authorization" }
   },
   {
     "id": "a01-cart-price-tampering",
@@ -33,7 +36,8 @@
     "hint": "The checkout form carries more than just your item choices. Inspect what gets posted back before you trust it to be read-only.",
     "difficulty": "medium",
     "sort_order": 30,
-    "is_planted": true
+    "is_planted": true,
+    "cwe": { "id": "CWE-602", "name": "Client-Side Enforcement of Server-Side Security" }
   },
   {
     "id": "a01-beacon-scan-internal-service",
@@ -42,7 +46,8 @@
     "hint": "The bridge will fetch any URL you hand it. Pick one a public client could never reach directly.",
     "difficulty": "easy",
     "sort_order": 40,
-    "is_planted": true
+    "is_planted": true,
+    "cwe": { "id": "CWE-918", "name": "Server-Side Request Forgery (SSRF)" }
   },
   {
     "id": "a01-beacon-cloud-metadata",
@@ -51,7 +56,8 @@
     "hint": "Cloud hosts expose information only to themselves at a well-known link-local address. The scanner doesn't filter where it goes.",
     "difficulty": "medium",
     "sort_order": 50,
-    "is_planted": true
+    "is_planted": true,
+    "cwe": { "id": "CWE-918", "name": "Server-Side Request Forgery (SSRF)" }
   },
   {
     "id": "a01-beacon-loopback-admin",
@@ -60,7 +66,8 @@
     "hint": "Some admin tooling binds to the loopback interface on purpose. The scanner sees what the public network cannot.",
     "difficulty": "medium",
     "sort_order": 60,
-    "is_planted": true
+    "is_planted": true,
+    "cwe": { "id": "CWE-918", "name": "Server-Side Request Forgery (SSRF)" }
   },
 
   {
@@ -70,7 +77,8 @@
     "hint": "Engineering left a tool behind that should have been pulled before launch. Common ops-style paths are worth trying in your address bar.",
     "difficulty": "easy",
     "sort_order": 10,
-    "is_planted": true
+    "is_planted": true,
+    "cwe": { "id": "CWE-489", "name": "Active Debug Code" }
   },
   {
     "id": "a02-default-station-credentials",
@@ -79,7 +87,8 @@
     "hint": "Factory-default service accounts get baked into vendor docs and quietly never rotated. Try the credentials a manual would ship with.",
     "difficulty": "easy",
     "sort_order": 20,
-    "is_planted": true
+    "is_planted": true,
+    "cwe": { "id": "CWE-1392", "name": "Use of Default Credentials" }
   },
   {
     "id": "a02-verbose-stack-traces",
@@ -88,7 +97,8 @@
     "hint": "Crash an endpoint with malformed input and see what the server volunteers about itself in the response.",
     "difficulty": "easy",
     "sort_order": 30,
-    "is_planted": true
+    "is_planted": true,
+    "cwe": { "id": "CWE-209", "name": "Generation of Error Message Containing Sensitive Information" }
   },
 
   {
@@ -98,7 +108,8 @@
     "hint": "Avatar uploads pass through a parser whose advisories were never patched. The relevant CVE is public — find it.",
     "difficulty": "hard",
     "sort_order": 10,
-    "is_planted": true
+    "is_planted": true,
+    "cwe": { "id": "CWE-1104", "name": "Use of Unmaintained Third-Party Components" }
   },
   {
     "id": "a03-known-cve-jwt",
@@ -107,7 +118,8 @@
     "hint": "Some JWT libraries trust the token's own header more than they should. Inspect the algorithm field and ask what it would take to skip verification entirely.",
     "difficulty": "medium",
     "sort_order": 20,
-    "is_planted": true
+    "is_planted": true,
+    "cwe": { "id": "CWE-347", "name": "Improper Verification of Cryptographic Signature" }
   },
   {
     "id": "a03-vulnerable-markdown",
@@ -116,7 +128,8 @@
     "hint": "The comms log's markdown renderer is years behind. Public bypasses exist for that version — find one that slips past its sanitizer.",
     "difficulty": "medium",
     "sort_order": 30,
-    "is_planted": true
+    "is_planted": true,
+    "cwe": { "id": "CWE-1104", "name": "Use of Unmaintained Third-Party Components" }
   },
 
   {
@@ -126,7 +139,8 @@
     "hint": "The outbound signing routine isn't a textbook algorithm — and a short, guessable secret makes brittle crypto.",
     "difficulty": "hard",
     "sort_order": 10,
-    "is_planted": true
+    "is_planted": true,
+    "cwe": { "id": "CWE-327", "name": "Use of a Broken or Risky Cryptographic Algorithm" }
   },
   {
     "id": "a04-rememberme-plaintext",
@@ -135,7 +149,8 @@
     "hint": "Convenience features sometimes trade safety for ease. Look closely at what the 'remember me' option leaves behind in your browser.",
     "difficulty": "easy",
     "sort_order": 20,
-    "is_planted": true
+    "is_planted": true,
+    "cwe": { "id": "CWE-315", "name": "Cleartext Storage of Sensitive Information in a Cookie" }
   },
   {
     "id": "a04-weak-password-hash",
@@ -144,7 +159,8 @@
     "hint": "Older crew records were never migrated to modern password storage. If you can find them, the rest is a familiar offline exercise.",
     "difficulty": "medium",
     "sort_order": 30,
-    "is_planted": true
+    "is_planted": true,
+    "cwe": { "id": "CWE-916", "name": "Use of Password Hash With Insufficient Computational Effort" }
   },
 
   {
@@ -154,7 +170,8 @@
     "hint": "The commissary search bar reaches the database directly. What happens when your query carries more than just words?",
     "difficulty": "easy",
     "sort_order": 10,
-    "is_planted": true
+    "is_planted": true,
+    "cwe": { "id": "CWE-89", "name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')" }
   },
   {
     "id": "a05-login-sqli",
@@ -163,7 +180,8 @@
     "hint": "The badge reader trusts what you type more than it should. With the right input, the comparison becomes vacuously true.",
     "difficulty": "medium",
     "sort_order": 20,
-    "is_planted": true
+    "is_planted": true,
+    "cwe": { "id": "CWE-89", "name": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')" }
   },
   {
     "id": "a05-comms-stored-xss",
@@ -172,7 +190,8 @@
     "hint": "Comms entries are shown to other crew. When the renderer doesn't escape, what they see is whatever you wrote.",
     "difficulty": "medium",
     "sort_order": 30,
-    "is_planted": true
+    "is_planted": true,
+    "cwe": { "id": "CWE-79", "name": "Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')" }
   },
 
   {
@@ -182,7 +201,8 @@
     "hint": "The allocation gate reads, decides, then writes. Two requests arriving close enough together might both pass the gate.",
     "difficulty": "hard",
     "sort_order": 10,
-    "is_planted": true
+    "is_planted": true,
+    "cwe": { "id": "CWE-367", "name": "Time-of-check Time-of-use (TOCTOU) Race Condition" }
   },
   {
     "id": "a06-password-reset-flow",
@@ -191,7 +211,8 @@
     "hint": "A reset token should be one-shot. Try using one twice and see whether the system actually notices.",
     "difficulty": "medium",
     "sort_order": 20,
-    "is_planted": true
+    "is_planted": true,
+    "cwe": { "id": "CWE-640", "name": "Weak Password Recovery Mechanism for Forgotten Password" }
   },
   {
     "id": "a06-promo-code-replay",
@@ -200,7 +221,8 @@
     "hint": "Vouchers are checked for validity but not necessarily for prior use. Once a code passes, what stops you from passing it again?",
     "difficulty": "easy",
     "sort_order": 30,
-    "is_planted": true
+    "is_planted": true,
+    "cwe": { "id": "CWE-294", "name": "Authentication Bypass by Capture-and-Replay" }
   },
 
   {
@@ -209,7 +231,9 @@
     "title": "Hijack a session via fixation",
     "hint": "A login should hand you a fresh session identifier. Check what your cookie looks like before and after — and what that implies.",
     "difficulty": "hard",
-    "sort_order": 10
+    "sort_order": 10,
+    "is_planted": true,
+    "cwe": { "id": "CWE-384", "name": "Session Fixation" }
   },
   {
     "id": "a07-no-rate-limit-login",
@@ -218,7 +242,8 @@
     "hint": "The badge reader doesn't seem to mind repeated wrong guesses. Patience and a list of common passwords go a long way.",
     "difficulty": "easy",
     "sort_order": 20,
-    "is_planted": true
+    "is_planted": true,
+    "cwe": { "id": "CWE-307", "name": "Improper Restriction of Excessive Authentication Attempts" }
   },
   {
     "id": "a07-weak-password-policy",
@@ -227,7 +252,8 @@
     "hint": "The registration form's password rules are forgiving. Try the sort of password every security guide tells you never to use.",
     "difficulty": "easy",
     "sort_order": 30,
-    "is_planted": true
+    "is_planted": true,
+    "cwe": { "id": "CWE-521", "name": "Weak Password Requirements" }
   },
 
   {
@@ -236,7 +262,9 @@
     "title": "Tamper with a cargo ledger import",
     "hint": "Bulk imports take whatever they're handed. Between the source and the ledger there's nothing checking that the file is genuine.",
     "difficulty": "medium",
-    "sort_order": 10
+    "sort_order": 10,
+    "is_planted": true,
+    "cwe": { "id": "CWE-345", "name": "Insufficient Verification of Data Authenticity" }
   },
   {
     "id": "a08-unsafe-deserialization",
@@ -244,7 +272,9 @@
     "title": "Pry open the unsafe deserialization path",
     "hint": "An import endpoint reconstructs runtime objects from input you control. Crafted payloads can do more than just populate fields.",
     "difficulty": "hard",
-    "sort_order": 20
+    "sort_order": 20,
+    "is_planted": true,
+    "cwe": { "id": "CWE-502", "name": "Deserialization of Untrusted Data" }
   },
   {
     "id": "a08-update-channel-unverified",
@@ -252,7 +282,9 @@
     "title": "Slip a forged update through the patch channel",
     "hint": "The patch channel pulls binaries without verifying who sent them. Whoever sits in the middle of that fetch controls what arrives.",
     "difficulty": "hard",
-    "sort_order": 30
+    "sort_order": 30,
+    "is_planted": true,
+    "cwe": { "id": "CWE-494", "name": "Download of Code Without Integrity Check" }
   },
 
   {
@@ -262,7 +294,8 @@
     "hint": "Take a destructive action against a comms entry and then go looking for evidence it ever happened.",
     "difficulty": "easy",
     "sort_order": 10,
-    "is_planted": true
+    "is_planted": true,
+    "cwe": { "id": "CWE-778", "name": "Insufficient Logging" }
   },
   {
     "id": "a09-no-audit-on-privileged-action",
@@ -270,7 +303,9 @@
     "title": "Perform a privileged action with no trace",
     "hint": "Sensitive actions should record who did what. Exercise one and see whether anything actually gets written.",
     "difficulty": "medium",
-    "sort_order": 20
+    "sort_order": 20,
+    "is_planted": true,
+    "cwe": { "id": "CWE-778", "name": "Insufficient Logging" }
   },
   {
     "id": "a09-log-injection-newline",
@@ -278,7 +313,9 @@
     "title": "Forge a log entry via injection",
     "hint": "User input lands in the log verbatim. The right control character in the right field can make a forged line look real.",
     "difficulty": "medium",
-    "sort_order": 30
+    "sort_order": 30,
+    "is_planted": true,
+    "cwe": { "id": "CWE-117", "name": "Improper Output Neutralization for Logs" }
   },
 
   {
@@ -287,7 +324,9 @@
     "title": "Provoke an unchecked exception that leaks state",
     "hint": "Some code paths assume input is well-formed. Hand them something that isn't and see what the resulting failure reveals.",
     "difficulty": "medium",
-    "sort_order": 10
+    "sort_order": 10,
+    "is_planted": true,
+    "cwe": { "id": "CWE-209", "name": "Generation of Error Message Containing Sensitive Information" }
   },
   {
     "id": "a10-fail-open-authorization",
@@ -295,7 +334,9 @@
     "title": "Force an authorization check to fail open",
     "hint": "When a permission check errors out, the safe answer is 'deny.' Find a check whose error path lets you through instead.",
     "difficulty": "hard",
-    "sort_order": 20
+    "sort_order": 20,
+    "is_planted": true,
+    "cwe": { "id": "CWE-636", "name": "Not Failing Securely ('Failing Open')" }
   },
   {
     "id": "a10-partial-rollback-on-error",
@@ -303,6 +344,8 @@
     "title": "Exploit a partially-rolled-back transaction",
     "hint": "Multi-step operations should be atomic. Crash one mid-flight and see what state the system is left in.",
     "difficulty": "hard",
-    "sort_order": 30
+    "sort_order": 30,
+    "is_planted": true,
+    "cwe": { "id": "CWE-460", "name": "Improper Cleanup on Thrown Exception" }
   }
 ]

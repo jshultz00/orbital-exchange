@@ -110,6 +110,12 @@ func All(conn *sql.DB) error {
 	if err := supplyDrops(tx); err != nil {
 		return err
 	}
+	if err := cargoBundles(tx); err != nil {
+		return err
+	}
+	if err := crewClearances(tx); err != nil {
+		return err
+	}
 
 	if err := tx.Commit(); err != nil {
 		return fmt.Errorf("seed commit: %w", err)
@@ -358,6 +364,58 @@ func vouchers(tx *sql.Tx) error {
 		if _, err := tx.Exec(stmt, v.Code, v.Discount, v.Description); err != nil {
 			return fmt.Errorf("seed voucher %q: %w", v.Code, err)
 		}
+	}
+	return nil
+}
+
+// defaultCargoBundles seeds one active bundle for the partial-rollback planted
+// vuln. Capacity is small (3) so the race to exhaustion is quick — a few
+// claims drain remaining to 0, then the next claim triggers the CHECK
+// constraint failure that leaves the manifest persisted but remaining unchanged.
+var defaultCargoBundles = []struct {
+	Slug        string
+	Name        string
+	Description string
+	Capacity    int
+}{
+	{
+		Slug:        "cycle-412-emergency-bundle",
+		Name:        "Cycle 412 // Emergency Cargo Bundle",
+		Description: "Limited emergency allocation. Claim while supplies last — one bundle per transaction.",
+		Capacity:    3,
+	},
+}
+
+func cargoBundles(tx *sql.Tx) error {
+	const stmt = `
+		INSERT OR IGNORE INTO cargo_bundles (slug, name, description, remaining, active)
+		VALUES (?, ?, ?, ?, 1)
+	`
+	for _, b := range defaultCargoBundles {
+		if _, err := tx.Exec(stmt, b.Slug, b.Name, b.Description, b.Capacity); err != nil {
+			return fmt.Errorf("seed cargo bundle %q: %w", b.Slug, err)
+		}
+	}
+	return nil
+}
+
+// crewClearances seeds a clearance token for the "ryland" crew member.
+// It's used by the planted fail-open vuln: a valid token proves the normal
+// (ErrNoRows) denial path works, while a crafted token with a quote character
+// triggers the error path that falls through instead of denying.
+func crewClearances(tx *sql.Tx) error {
+	var rylandID int64
+	err := tx.QueryRow(`SELECT id FROM users WHERE username = 'ryland'`).Scan(&rylandID)
+	if err != nil {
+		// ryland may not exist on this database yet; skip rather than fail.
+		return nil
+	}
+	const stmt = `
+		INSERT OR IGNORE INTO crew_clearances (token, user_id, granted_by)
+		VALUES (?, ?, 'command')
+	`
+	if _, err := tx.Exec(stmt, "OE-CLR-ryland-cycle412", rylandID); err != nil {
+		return fmt.Errorf("seed crew clearance: %w", err)
 	}
 	return nil
 }

@@ -118,6 +118,13 @@ func (c *Comms) Submit(w http.ResponseWriter, r *http.Request) {
 		userID = nil
 	}
 
+	// PLANTED VULN a09-log-injection-newline: the author field from user input
+	// lands in the log verbatim. A newline character in the author value splits
+	// the log line, allowing an attacker to forge the appearance of additional
+	// log entries. A real app would strip or escape control characters before
+	// logging user-supplied strings.
+	log.Printf("comms: received transmission from %s (format=%s)", author, format)
+
 	if _, err := c.DB.Exec(
 		`INSERT INTO comms_entries (user_id, author, body, format) VALUES (?, ?, ?, ?)`,
 		userID, author, body, format,
@@ -133,6 +140,14 @@ func (c *Comms) Submit(w http.ResponseWriter, r *http.Request) {
 		    discovered_at = CURRENT_TIMESTAMP
 		WHERE id = ? AND status = 'undiscovered'
 	`
+	// Log-injection detection: the author was logged verbatim above. If it
+	// contains a newline or carriage return, an attacker injected a fake log
+	// line into the server log. PLANTED VULN a09-log-injection-newline.
+	if strings.ContainsAny(author, "\n\r") {
+		if _, err := c.DB.Exec(flip, "a09-log-injection-newline"); err != nil {
+			log.Printf("comms log-inject discover flip: %v", err)
+		}
+	}
 	// XSS detection (raw rendering path): look for script tags, event
 	// handlers, or other markup. PLANTED VULN a05-comms-stored-xss.
 	if format == "raw" && detectXSSPattern(body) {

@@ -48,6 +48,7 @@
                 <th>Callsign</th>
                 <th>Role</th>
                 <th>Aboard Since</th>
+                <th>Access</th>
             </tr>
         </thead>
         <tbody>
@@ -57,6 +58,13 @@
                 <td>{{.Username}}</td>
                 <td>{{if .IsAdmin}}<span class="pill pill-exploited">COMMAND</span>{{else}}<span class="pill pill-undiscovered">CREW</span>{{end}}</td>
                 <td class="muted">{{.CreatedAt}}</td>
+                <td>
+                    <form method="POST" action="/command/crew/{{.ID}}/toggle-admin" style="display:inline;">
+                        <button class="btn btn-ghost" type="submit" title="Toggle Command access — no audit log is written">
+                            {{if .IsAdmin}}Revoke{{else}}Grant{{end}}
+                        </button>
+                    </form>
+                </td>
             </tr>
             {{end}}
         </tbody>

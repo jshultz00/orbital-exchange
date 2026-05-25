@@ -1,0 +1,37 @@
+{{define "content"}}
+<section class="panel">
+    <p class="panel-title">Bridge // Restricted Intel Archive</p>
+    <h1>Station Command Intel Dossier</h1>
+    <p class="readout">CLASSIFICATION: RESTRICTED — authorized personnel only.</p>
+    <p class="muted mono">
+        Access granted via Station Command authorization. Crew with a valid clearance
+        token may supply <code>?token=&lt;token&gt;</code> in the URL.
+    </p>
+</section>
+
+<section class="panel">
+    <p class="panel-title">Crew Manifest Summary</p>
+    {{if .Intel}}
+    <table class="mono">
+        <thead>
+            <tr>
+                <th>Callsign</th>
+                <th>Manifests</th>
+                <th>Total Credits Drawn</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{range .Intel}}
+            <tr>
+                <td>{{.Username}}</td>
+                <td>{{.ManifestCount}}</td>
+                <td>{{.TotalCredits}} cr</td>
+            </tr>
+            {{end}}
+        </tbody>
+    </table>
+    {{else}}
+    <p class="readout">No crew manifest records on file.</p>
+    {{end}}
+</section>
+{{end}}

@@ -22,11 +22,14 @@ import (
 
 // Auth handles register, login, and logout.
 //
-// Defensive baseline (no vulns planted yet):
+// Defensive baseline:
 //   - bcrypt for password storage (cost 12)
-//   - session token rotated on login via sess.RenewToken to defeat fixation
 //   - generic "credentials invalid" errors so we don't leak which field was wrong
 //   - parameterized SQL throughout
+//
+// PLANTED VULN a07-session-fixation: the Login handler intentionally does NOT
+// rotate the session token on auth boundary, so a pre-login session id remains
+// valid after sign-in. Register *does* rotate — fixation is a login-flow lesson.
 type Auth struct {
 	DB      *sql.DB
 	Views   *views.Views
@@ -36,7 +39,13 @@ type Auth struct {
 const bcryptCost = 12
 const weakPasswordPolicyTrackerID = "a07-weak-password-policy"
 const noRateLimitTrackerID = "a07-no-rate-limit-login"
+const sessionFixationTrackerID = "a07-session-fixation"
 const rememberMeTrackerID = "a04-rememberme-plaintext"
+
+// preLoginTokenKey records the session token observed when the login form was
+// rendered. The Login handler compares it to the post-auth token to decide
+// whether the planted fixation tracker should flip.
+const preLoginTokenKey = "pre_login_token"
 
 // rememberMeCookie is the plaintext-encoded "stay signed in" cookie. PLANTED
 // VULN a04-rememberme-plaintext: the value is base64(username:station_key) —
@@ -101,8 +110,12 @@ func clearFailedLogins(username string) {
 
 // ----- GET forms -----
 
-// LoginForm renders /login.
+// LoginForm renders /login. It also pins the current (pre-auth) session token
+// into the session itself so Login can later detect that the same token
+// survived sign-in — that round-trip is what flips the planted
+// a07-session-fixation tracker.
 func (a *Auth) LoginForm(w http.ResponseWriter, r *http.Request) {
+	a.Session.Put(r.Context(), preLoginTokenKey, a.Session.Token(r.Context()))
 	data := pageData(r, a.Session, "Sign In")
 	data["Mode"] = "login"
 	render(w, a.Views, "auth", data)
@@ -155,16 +168,31 @@ func (a *Auth) Login(w http.ResponseWriter, r *http.Request) {
 	}
 	clearFailedLogins(username)
 
-	// Rotate the session token on auth boundary — prevents fixation.
-	if err := a.Session.RenewToken(r.Context()); err != nil {
-		log.Printf("auth login renew: %v", err)
-		http.Error(w, "internal error", http.StatusInternalServerError)
-		return
-	}
+	// PLANTED VULN a07-session-fixation: we intentionally do NOT call
+	// a.Session.RenewToken here, so whatever session token the client arrived
+	// with becomes their authenticated session token. Capture the token now so
+	// we can compare it to the marker pinned by LoginForm and decide whether
+	// the lesson has been demonstrated.
+	preLoginToken := a.Session.GetString(r.Context(), preLoginTokenKey)
+	postLoginToken := a.Session.Token(r.Context())
+	a.Session.Remove(r.Context(), preLoginTokenKey)
+
 	a.Session.Put(r.Context(), session.KeyUserID, int(id))
 	a.Session.Put(r.Context(), session.KeyUsername, uname)
 	a.Session.Put(r.Context(), session.KeyIsAdmin, isAdmin == 1)
 	a.Session.Put(r.Context(), session.KeyFlash, "Signed in as "+uname+".")
+
+	if preLoginToken != "" && preLoginToken == postLoginToken {
+		const flip = `
+			UPDATE vulnerabilities
+			SET status = 'discovered',
+			    discovered_at = CURRENT_TIMESTAMP
+			WHERE id = ? AND status = 'undiscovered'
+		`
+		if _, err := a.DB.Exec(flip, sessionFixationTrackerID); err != nil {
+			log.Printf("auth session fixation discover flip: %v", err)
+		}
+	}
 
 	// PLANTED VULN a04-rememberme-plaintext: if the crew member ticks "remember
 	// me", we issue a cookie holding base64(username:station_key) — encoded,

@@ -2,8 +2,10 @@ package handlers
 
 import (
 	"database/sql"
+	"errors"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/alexedwards/scs/v2"
 
@@ -94,6 +96,65 @@ func (c *Command) loadStats() (CommandStats, error) {
 	`
 	err := c.DB.QueryRow(q).Scan(&s.Users, &s.Products, &s.CartItems, &s.CommsEntries, &s.Vulns, &s.VulnsDone)
 	return s, err
+}
+
+// ToggleAdmin grants or revokes admin status for a crew member.
+//
+// PLANTED VULN a09-no-audit-on-privileged-action: this handler promotes or
+// demotes a crew member but writes no audit record — no DB row, no log line.
+// The change takes effect silently; an investigator looking for evidence of who
+// did what will find nothing.
+func (c *Command) ToggleAdmin(w http.ResponseWriter, r *http.Request) {
+	user := requireAdmin(w, r, c.Session)
+	if user == nil {
+		return
+	}
+
+	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil || id <= 0 {
+		http.Error(w, "bad id", http.StatusBadRequest)
+		return
+	}
+
+	var current int
+	err = c.DB.QueryRow(`SELECT is_admin FROM users WHERE id = ?`, id).Scan(&current)
+	if errors.Is(err, sql.ErrNoRows) {
+		http.NotFound(w, r)
+		return
+	}
+	if err != nil {
+		log.Printf("toggle admin lookup %d: %v", id, err)
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
+
+	newVal := 1
+	if current == 1 {
+		newVal = 0
+	}
+
+	// VULNERABLE BY DESIGN: no audit log is written here. The role change
+	// happens, but there is no record of who performed it or when.
+	if _, err := c.DB.Exec(`UPDATE users SET is_admin = ? WHERE id = ?`, newVal, id); err != nil {
+		log.Printf("toggle admin update %d: %v", id, err)
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
+
+	// Flip the tracker the first time any privileged action completes with no
+	// audit trail. Detection is on the action itself — the absence of a log
+	// entry is the planted lesson.
+	const flip = `
+		UPDATE vulnerabilities
+		SET status = 'discovered',
+		    discovered_at = CURRENT_TIMESTAMP
+		WHERE id = ? AND status = 'undiscovered'
+	`
+	if _, err := c.DB.Exec(flip, "a09-no-audit-on-privileged-action"); err != nil {
+		log.Printf("toggle admin tracker flip: %v", err)
+	}
+
+	http.Redirect(w, r, "/command", http.StatusSeeOther)
 }
 
 func (c *Command) loadRoster() ([]CrewRow, error) {

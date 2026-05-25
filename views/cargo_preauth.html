@@ -1,0 +1,61 @@
+{{define "content"}}
+<section class="panel">
+    <p class="panel-title">Bridge // Cargo Pre-Authorization</p>
+    <h1>Cargo Pre-Authorization Token Redemption</h1>
+    <p class="readout">
+        Station Command issues encoded pre-authorization packets to crew coordinators
+        for bulk cargo operations. Submit your token below to apply the allocation to
+        your ledger account.
+    </p>
+    <p class="readout">
+        Tokens are base64-encoded cargo packets. Generate a sample token for your
+        account to inspect the format before submitting.
+    </p>
+    <p class="muted mono">
+        <a href="/bridge/cargo-preauth/token">Generate sample token for my account</a>
+        &mdash; returns a plain-text base64 packet you can decode and inspect.
+    </p>
+</section>
+
+<section class="panel">
+    <p class="panel-title">Redeem Pre-Authorization Token</p>
+    <form method="POST" action="/bridge/cargo-preauth/redeem">
+        <label for="preauth_token">Pre-authorization token (base64)</label>
+        <textarea id="preauth_token" name="preauth_token" rows="4"
+            placeholder="Paste your base64-encoded pre-authorization packet here"
+            style="width:100%;font-family:monospace;resize:vertical"></textarea>
+        <button type="submit">Redeem token</button>
+    </form>
+</section>
+
+{{if .Result}}
+<section class="panel">
+    <p class="panel-title">Redemption Result</p>
+
+    {{if .Result.Err}}
+    <p class="readout" style="color:var(--red,#e05)">&#10007; {{.Result.Err}}</p>
+    {{else if .Result.Elevated}}
+    <p class="readout amber">&#9650; ELEVATED OPERATION AUTHORIZED</p>
+    <p class="readout">{{.Result.Outcome}}</p>
+    <p class="muted mono">
+        Manifest entry written. View it under <a href="/manifest">Manifest</a>.
+    </p>
+    {{else}}
+    <p class="readout">&#10003; {{.Result.Outcome}}</p>
+    {{end}}
+
+    {{if .Result.Packet}}
+    <p class="panel-title">Decoded Packet</p>
+    <table class="mono" style="border-collapse:collapse;width:100%">
+        <tr><th style="text-align:left;padding:2px 8px">Field</th><th style="text-align:left;padding:2px 8px">Value</th></tr>
+        <tr><td style="padding:2px 8px">user_id</td>   <td style="padding:2px 8px">{{.Result.Packet.UserID}}</td></tr>
+        <tr><td style="padding:2px 8px">username</td>  <td style="padding:2px 8px">{{.Result.Packet.Username}}</td></tr>
+        <tr><td style="padding:2px 8px">role</td>      <td style="padding:2px 8px">{{.Result.Packet.Role}}</td></tr>
+        <tr><td style="padding:2px 8px">operation</td> <td style="padding:2px 8px">{{.Result.Packet.Operation}}</td></tr>
+        <tr><td style="padding:2px 8px">credits</td>   <td style="padding:2px 8px">{{.Result.Packet.Credits}}</td></tr>
+        <tr><td style="padding:2px 8px">issued_at</td> <td style="padding:2px 8px">{{.Result.Packet.IssuedAt}}</td></tr>
+    </table>
+    {{end}}
+</section>
+{{end}}
+{{end}}

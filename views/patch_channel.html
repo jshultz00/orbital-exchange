@@ -1,0 +1,106 @@
+{{define "content"}}
+<section class="panel">
+    <p class="panel-title">Bridge // Patch Channel</p>
+    <h1>Station Software Update Channel</h1>
+    <p class="readout">
+        Station Command distributes firmware and software patches through this
+        channel. Trigger a patch fetch to pull the latest manifest from the
+        distribution server and apply it to the station's module stack.
+    </p>
+    <p class="readout muted">
+        Each official manifest is SHA-256 signed before distribution.
+        The expected hash is published below so crew can verify integrity.
+    </p>
+</section>
+
+<section class="panel">
+    <p class="panel-title">Official Patch Manifest</p>
+    <table class="cart-table mono" style="width:100%">
+        <tr>
+            <th style="text-align:left;padding:4px 8px;width:180px">PATCH SERVER</th>
+            <td style="padding:4px 8px" class="muted">{{.OfficialURL}}</td>
+        </tr>
+        <tr>
+            <th style="text-align:left;padding:4px 8px">EXPECTED SHA-256</th>
+            <td style="padding:4px 8px" class="amber mono">{{.ExpectedHash}}</td>
+        </tr>
+    </table>
+    <details style="margin-top:0.75rem">
+        <summary class="muted mono" style="cursor:pointer">official manifest body</summary>
+        <pre class="readout mono" style="margin-top:0.5rem">{{.OfficialManifest}}</pre>
+    </details>
+</section>
+
+<section class="panel">
+    <p class="panel-title">Apply Patch</p>
+    <p class="readout muted">
+        Override the patch server URL to fetch from an alternate distribution
+        point. The station applies whatever it receives.
+    </p>
+    <form method="POST" action="/bridge/patch-channel/apply">
+        <label class="muted mono" for="patch-url">PATCH SERVER URL</label>
+        <input id="patch-url" type="text" name="patch_url"
+            value="{{if .Result}}{{.Result.PatchURL}}{{else}}{{.OfficialURL}}{{end}}"
+            placeholder="{{.OfficialURL}}"
+            autocomplete="off" style="width:100%;font-family:monospace">
+        <button type="submit" style="margin-top:0.5rem">Fetch &amp; Apply</button>
+    </form>
+</section>
+
+{{if .Result}}
+<section class="panel">
+    <p class="panel-title">Apply Result</p>
+
+    {{if .Result.Err}}
+    <p class="readout" style="color:var(--red,#e05)">&#10007; {{.Result.Err}}</p>
+    {{else}}
+
+    <table class="cart-table mono" style="width:100%">
+        <tr>
+            <th style="text-align:left;padding:4px 8px;width:180px">FETCH URL</th>
+            <td style="padding:4px 8px">{{.Result.PatchURL}}</td>
+        </tr>
+        <tr>
+            <th style="text-align:left;padding:4px 8px">HTTP STATUS</th>
+            <td style="padding:4px 8px">{{.Result.StatusCode}}</td>
+        </tr>
+        <tr>
+            <th style="text-align:left;padding:4px 8px">RECEIVED SHA-256</th>
+            <td style="padding:4px 8px" class="{{if .Result.HashMatch}}amber{{else}}mono{{end}}">{{.Result.ReceivedHash}}</td>
+        </tr>
+        <tr>
+            <th style="text-align:left;padding:4px 8px">EXPECTED SHA-256</th>
+            <td style="padding:4px 8px" class="amber mono">{{.Result.ExpectedHash}}</td>
+        </tr>
+        <tr>
+            <th style="text-align:left;padding:4px 8px">INTEGRITY CHECK</th>
+            <td style="padding:4px 8px">
+                {{if .Result.HashMatch}}
+                <span class="amber">&#10003; MATCH — content is authentic</span>
+                {{else}}
+                <span style="color:var(--red,#e05)">&#10007; MISMATCH — hash does not match official manifest</span>
+                {{end}}
+            </td>
+        </tr>
+        <tr>
+            <th style="text-align:left;padding:4px 8px">APPLIED</th>
+            <td style="padding:4px 8px" class="amber">YES — patch installed without integrity gate</td>
+        </tr>
+    </table>
+
+    <details style="margin-top:0.75rem">
+        <summary class="muted mono" style="cursor:pointer">received body</summary>
+        <pre class="readout mono" style="margin-top:0.5rem">{{.Result.BodySnip}}</pre>
+    </details>
+
+    {{if not .Result.HashMatch}}
+    <p class="readout amber" style="margin-top:1rem">
+        &#9650; Forged patch accepted. The station applied content that failed
+        its own integrity check — the update channel does not gate on SHA-256.
+    </p>
+    {{end}}
+
+    {{end}}
+</section>
+{{end}}
+{{end}}

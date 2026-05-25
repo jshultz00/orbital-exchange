@@ -1,0 +1,54 @@
+{{define "content"}}
+<section class="panel">
+    <p class="panel-title">Bridge // Cargo Ledger Import</p>
+    <h1>Bulk Cargo Import</h1>
+    <p class="readout">
+        Upload a CSV manifest to import cargo records into the station ledger in bulk.
+        The importer accepts any well-formed file — no authentication token is required
+        beyond your crew session.
+    </p>
+    <p class="readout">
+        <strong>CSV format</strong> (header row required):
+    </p>
+    <pre class="mono readout">summary,slug,qty,unit_price
+Cycle 414 Cargo Delivery,ration-pack-alpha,10,12
+Cycle 414 Cargo Delivery,oxygen-canister-standard,4,45</pre>
+    <p class="muted mono">
+        Rows with the same <code>summary</code> are grouped into a single manifest entry.
+        The <code>slug</code> field must match a commissary product slug.
+        Use <a href="/bridge/cargo-import/sample">Download sample CSV</a> to get a pre-filled
+        export from the current catalog.
+    </p>
+</section>
+
+<section class="panel">
+    <p class="panel-title">Upload Manifest File</p>
+    <form method="POST" action="/bridge/cargo-import" enctype="multipart/form-data">
+        <label for="cargo_csv">Cargo manifest (.csv)</label>
+        <input type="file" id="cargo_csv" name="cargo_csv" accept=".csv,text/csv" required>
+        <button type="submit">Import cargo ledger</button>
+    </form>
+</section>
+
+{{if .Result}}
+<section class="panel">
+    <p class="panel-title">Import Result</p>
+    {{if gt .Result.Imported 0}}
+    <p class="readout amber">&#10003; {{.Result.Imported}} manifest(s) written to the ledger.</p>
+    <p class="muted mono">
+        Entries are now visible under <a href="/manifest">Manifest</a>.
+    </p>
+    {{else}}
+    <p class="readout">No manifests were imported.</p>
+    {{end}}
+    {{if .Result.Errors}}
+    <p class="panel-title">Warnings</p>
+    <ul class="mono muted">
+        {{range .Result.Errors}}
+        <li>{{.}}</li>
+        {{end}}
+    </ul>
+    {{end}}
+</section>
+{{end}}
+{{end}}

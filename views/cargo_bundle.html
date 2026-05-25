@@ -1,0 +1,22 @@
+{{define "content"}}
+<section class="panel">
+    <p class="panel-title">Bridge // Cargo Allocation</p>
+    <h1>Emergency Cargo Bundle</h1>
+    {{if .Bundle}}
+        <p class="readout">{{.Bundle.Description}}</p>
+        <dl class="readout mono">
+            <dt>BUNDLE</dt><dd>{{.Bundle.Name}}</dd>
+            <dt>REMAINING</dt><dd class="amber">{{.Bundle.Remaining}}</dd>
+        </dl>
+        <form method="POST" action="/bridge/cargo-bundle/claim">
+            <button type="submit">Claim cargo bundle</button>
+        </form>
+        <p class="muted mono">
+            Each claim issues a manifest and decrements the pool. Operations are
+            logged; anomalies should be reported to Station Command.
+        </p>
+    {{else}}
+        <p class="readout">No active cargo bundle on the schedule.</p>
+    {{end}}
+</section>
+{{end}}

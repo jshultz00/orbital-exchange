@@ -133,6 +133,9 @@ func main() {
 
 	command := &handlers.Command{DB: conn, Views: v, Session: sess}
 	mux.HandleFunc("GET /command", command.Dashboard)
+	// Planted vuln a09-no-audit-on-privileged-action: admin can promote or
+	// demote any crew member, but no audit record is written for the change.
+	mux.HandleFunc("POST /command/crew/{id}/toggle-admin", command.ToggleAdmin)
 
 	// Planted vuln a01-beacon-scan-*: SSRF via an unrestricted server-side
 	// URL fetcher exposed to any logged-in crew member.
@@ -145,6 +148,31 @@ func main() {
 	supply := &handlers.Supply{DB: conn, Views: v, Session: sess}
 	mux.HandleFunc("GET /bridge/supply-drop", supply.View)
 	mux.HandleFunc("POST /bridge/supply-drop/claim", supply.Claim)
+
+	// Planted vuln a08-unsigned-cargo-import: the import endpoint accepts any
+	// CSV file and writes whatever unit prices it contains to the manifest
+	// ledger — no HMAC signature or canonical-price check. An attacker
+	// downloads the sample export, edits prices, and re-submits.
+	cargo := &handlers.CargoImport{DB: conn, Views: v, Session: sess}
+	mux.HandleFunc("GET /bridge/cargo-import", cargo.Form)
+	mux.HandleFunc("GET /bridge/cargo-import/sample", cargo.Sample)
+	mux.HandleFunc("POST /bridge/cargo-import", cargo.Submit)
+
+	// Planted vuln a08-unsafe-deserialization: the pre-auth endpoint decodes a
+	// base64+JSON "cargo packet" from user input and trusts its Role field
+	// without consulting the session. Crafting a packet with
+	// Role="station_command" grants admin-level cargo operations.
+	preauth := &handlers.PreAuth{DB: conn, Views: v, Session: sess}
+	mux.HandleFunc("GET /bridge/cargo-preauth", preauth.Form)
+	mux.HandleFunc("GET /bridge/cargo-preauth/token", preauth.Token)
+	mux.HandleFunc("POST /bridge/cargo-preauth/redeem", preauth.Redeem)
+
+	// Planted vuln a08-update-channel-unverified: the patch apply endpoint
+	// fetches whatever URL crew supplies and installs the result without
+	// verifying the SHA-256 hash published alongside the official manifest.
+	patch := &handlers.PatchChannel{DB: conn, Views: v, Session: sess}
+	mux.HandleFunc("GET /bridge/patch-channel", patch.Page)
+	mux.HandleFunc("POST /bridge/patch-channel/apply", patch.Apply)
 
 	tracker := &handlers.Tracker{DB: conn, Views: v, Session: sess}
 	mux.HandleFunc("GET /tracker", tracker.View)
@@ -167,6 +195,27 @@ func main() {
 	legacy := &handlers.Legacy{DB: conn, Views: v, Session: sess}
 	mux.HandleFunc("GET /archive", legacy.Index)
 	mux.HandleFunc("POST /archive/verify", legacy.Verify)
+
+	// Planted vuln a10-unchecked-exception-info-leak: the ledger verifier
+	// writes the raw Go json.Unmarshal error into the response on type
+	// mismatch, leaking internal struct field names and expected types.
+	ledger := &handlers.LedgerCheck{DB: conn, Views: v, Session: sess}
+	mux.HandleFunc("GET /bridge/ledger-check", ledger.Page)
+	mux.HandleFunc("POST /bridge/ledger-check", ledger.Verify)
+
+	// Planted vuln a10-fail-open-authorization: the clearance token check
+	// builds its SQL via fmt.Sprintf; a crafted token causes a parse error
+	// whose handler falls through instead of denying — granting access.
+	dossier := &handlers.RestrictedDossier{DB: conn, Views: v, Session: sess}
+	mux.HandleFunc("GET /bridge/restricted-dossier", dossier.Page)
+
+	// Planted vuln a10-partial-rollback-on-error: the bundle claim inserts a
+	// manifest (step 1) then decrements remaining (step 2) without a
+	// transaction. When remaining hits 0 the CHECK constraint fires on step 2,
+	// but step 1's manifest is already committed and is not rolled back.
+	bundle := &handlers.CargoBundle{DB: conn, Views: v, Session: sess}
+	mux.HandleFunc("GET /bridge/cargo-bundle", bundle.Page)
+	mux.HandleFunc("POST /bridge/cargo-bundle/claim", bundle.Claim)
 
 	// Planted vuln a04-comms-beacon-cipher: outbound beacons are signed by
 	// a custom (non-HMAC) MAC routine with a short shared secret. The page

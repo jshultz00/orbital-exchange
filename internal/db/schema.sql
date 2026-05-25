@@ -164,6 +164,31 @@ CREATE TABLE IF NOT EXISTS password_resets (
 );
 CREATE INDEX IF NOT EXISTS password_resets_user_idx ON password_resets(user_id);
 
+-- Crew clearance tokens for the restricted intel dossier.
+-- PLANTED VULN a10-fail-open-authorization: the clearance-check query uses
+-- raw SQL (fmt.Sprintf), so a crafted token triggers a parse error. The error
+-- handler falls through instead of denying — granting access without a valid token.
+CREATE TABLE IF NOT EXISTS crew_clearances (
+    token      TEXT    PRIMARY KEY,
+    user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    granted_by TEXT    NOT NULL DEFAULT 'command'
+);
+
+-- Cargo bundles for the partial-rollback exploit.
+-- PLANTED VULN a10-partial-rollback-on-error: the claim handler inserts a
+-- manifest (step 1) then decrements remaining (step 2) with no wrapping
+-- transaction. When remaining hits 0 the CHECK constraint fires on step 2,
+-- but step 1's manifest is already committed and is not rolled back.
+CREATE TABLE IF NOT EXISTS cargo_bundles (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    slug        TEXT    NOT NULL UNIQUE,
+    name        TEXT    NOT NULL,
+    description TEXT    NOT NULL DEFAULT '',
+    remaining   INTEGER NOT NULL CHECK (remaining >= 0),
+    active      INTEGER NOT NULL DEFAULT 1 CHECK (active IN (0, 1)),
+    created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Sessions table for github.com/alexedwards/scs/v2 + sqlite3store. The store
 -- does NOT auto-create this — schema is required up front. See:
 -- https://github.com/alexedwards/scs/blob/master/sqlite3store/README.md
