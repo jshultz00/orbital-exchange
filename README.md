@@ -93,34 +93,48 @@ This README is for running and extending the app, not solving it. It lists ordin
 
 These are the normal app and maintenance surfaces. Some challenge-only behavior is intentionally omitted or described broadly.
 
-| Method | Path                              | Description |
-|--------|-----------------------------------|-------------|
-| GET    | `/`                               | Station bulletin / landing |
-| GET    | `/catalog`                        | Commissary listing, grouped by category |
-| GET    | `/catalog/{slug}`                 | Product detail with Add to Cart form |
-| GET    | `/cart`                           | Pending requisition (login required) |
-| POST   | `/cart`                           | Add to cart (server validates product/qty) |
-| POST   | `/cart/{product_id}/remove`       | Remove a cart line |
-| GET    | `/manifest`                       | Your own requisition manifests (login required) |
-| GET    | `/manifest/{id}`                  | Manifest detail (login required) |
-| GET    | `/manifest/export`                | Manifest export API referenced in-app |
-| GET    | `/crew`                           | Crew roster (login required) |
-| GET    | `/crew/{id}`                      | Crew roster detail (login required) |
-| GET    | `/login`, `/register`             | Auth forms |
-| POST   | `/login`, `/register`, `/logout`  | Auth actions |
-| GET    | `/comms`                          | Comms log — public, anonymous posts allowed |
-| POST   | `/comms`                          | Submit a comms entry |
-| GET    | `/command`                        | Station Command dashboard (admin only) |
-| GET    | `/tracker`                        | Vulnerability tracker — accepts `?difficulty=` and `?status=` filters |
-| POST   | `/tracker/reset`                  | Reset all tracker rows to `undiscovered` (admin only) |
-| POST   | `/tracker/{id}/discover`          | Internal training hook for planted challenge code |
+| Method | Path                                   | Description |
+|--------|----------------------------------------|-------------|
+| GET    | `/`                                    | Station bulletin / landing |
+| GET    | `/catalog`                             | Commissary listing, grouped by category |
+| GET    | `/catalog/{slug}`                      | Product detail with Add to Cart form |
+| GET    | `/cart`                                | Pending requisition (login required) |
+| POST   | `/cart`                                | Add to cart (server validates product/qty) |
+| POST   | `/cart/{product_id}/remove`            | Remove a cart line |
+| POST   | `/cart/voucher`                        | Apply a ration voucher code |
+| POST   | `/cart/checkout`                       | Submit the requisition and create a manifest |
+| GET    | `/manifest`                            | Your own requisition manifests (login required) |
+| GET    | `/manifest/{id}`                       | Manifest detail (login required) |
+| GET    | `/manifest/export`                     | Manifest export API referenced in-app |
+| GET    | `/crew`                                | Crew roster (login required) |
+| GET    | `/crew/{id}`                           | Crew roster detail (login required) |
+| GET    | `/avatar`                              | Avatar upload form (login required) |
+| POST   | `/avatar`                              | Upload a crew avatar image |
+| GET    | `/login`, `/register`                  | Auth forms |
+| POST   | `/login`, `/register`, `/logout`       | Auth actions |
+| GET    | `/reset`                               | Password reset request form |
+| POST   | `/reset`                               | Submit reset request |
+| GET    | `/reset/confirm`                       | Password reset confirmation form (token required) |
+| POST   | `/reset/confirm`                       | Submit new password |
+| GET    | `/comms`                               | Comms log — public, anonymous posts allowed |
+| POST   | `/comms`                               | Submit a comms entry |
+| POST   | `/comms/{id}/delete`                   | Delete a comms entry (admin only) |
+| GET    | `/command`                             | Station Command dashboard (admin only) |
+| POST   | `/command/crew/{id}/toggle-admin`      | Grant or revoke crew admin status (admin only) |
+| GET    | `/tracker`                             | Vulnerability tracker — accepts `?difficulty=` and `?status=` filters |
+| POST   | `/tracker/reset`                       | Reset all tracker rows to `undiscovered` (admin only) |
+| POST   | `/tracker/{id}/discover`               | Internal training hook for planted challenge code |
 
 ## Vulnerability Tracker
 
-`/tracker` is the registry every future spec appends to. The tracker shows only planted rows and keeps each row's hint hidden until the user chooses **Reveal hint**. The scaffold seeds:
+`/tracker` is the registry every future spec appends to. The tracker shows only planted rows and keeps each row's hint hidden until the user chooses **Reveal hint**.
+
+The app ships with all **30 vulnerabilities fully planted** — 3 per OWASP 2025 category, mixed easy/medium/hard:
 
 - **10 OWASP 2025 categories** in `categories` table.
-- **30 vulnerability slots** (3 per category, mixed easy/medium/hard) in `vulnerabilities` table — roadmap rows stay hidden until their matching training surface is wired in.
+- **30 vulnerability slots** in `vulnerabilities` table — all marked `is_planted: true` with live exploit surfaces wired into handlers.
+
+A full write-up for each challenge (what it is, how it works here, real-world context, detection, and fix) is in [docs/vulnerabilities.md](docs/vulnerabilities.md).
 
 ### Two reset paths
 
@@ -147,7 +161,8 @@ internal/
   seed/            # idempotent seed loader + JSON sources of truth
   session/         # scs session manager + key constants
   views/           # html/template loader (layout + page composition)
-  handlers/        # one file per route group: pages, catalog, auth, cart, crew, manifest, comms, command, tracker
+  handlers/        # one file per route group or challenge surface
+docs/              # full vulnerability write-ups (vulnerabilities.md)
 views/             # html/template files (layout + page bodies)
 public/
   css/             # theme.css + tracker.css
@@ -161,6 +176,6 @@ Module path: `github.com/jshultz00/orbital-exchange`.
 
 ## Status
 
-Scaffold complete. Vulnerabilities are planted one at a time; each one intentionally deviates from the defensive baseline and references the tracker row it satisfies.
+All 30 vulnerabilities are planted and live. Each handler intentionally deviates from the defensive baseline and references the tracker row it satisfies. Every planted challenge flips its tracker row to `discovered` when its hidden success condition fires.
 
-Each planted handler flips its tracker row to `discovered` when its hidden success condition fires. The README avoids listing planted surfaces and solutions; use the app and tracker hints for practice.
+The README avoids listing planted surfaces and solutions; use the app and tracker hints for practice, or consult [docs/vulnerabilities.md](docs/vulnerabilities.md) for the full reference.
