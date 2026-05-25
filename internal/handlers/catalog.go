@@ -15,10 +15,14 @@ import (
 	"github.com/jshultz00/orbital-exchange/internal/views"
 )
 
-// requisitionSearchTrackerID is the planted A03 (Injection) row flipped when
+// requisitionSearchTrackerID is the planted A05 (Injection) row flipped when
 // the catalog search query contains classic SQL-injection markers. The search
 // box concatenates raw input into the WHERE clause by design.
 const requisitionSearchTrackerID = "a05-requisition-search-sqli"
+
+// logInjectionTrackerID is the planted A09 row flipped when a CR or LF
+// character appears in the search query, proving the log-injection surface.
+const logInjectionTrackerID = "a09-log-injection-newline"
 
 // Catalog handles browsing the commissary inventory.
 //
@@ -86,6 +90,13 @@ func (c *Catalog) List(w http.ResponseWriter, r *http.Request) {
 		`
 	}
 
+	if search != "" && looksLikeLogInjection(search) {
+		// VULNERABLE BY DESIGN: raw query string is written to the log
+		// verbatim, letting CR/LF forge synthetic log lines.
+		log.Printf("catalog search: q=%s", search)
+		c.flipLogInjectionDiscovery()
+	}
+
 	rows, err := c.DB.Query(query)
 	if err != nil {
 		// Surface the SQL error to the page so injection feedback is
@@ -148,6 +159,22 @@ func looksLikeSQLi(s string) bool {
 		}
 	}
 	return false
+}
+
+func looksLikeLogInjection(s string) bool {
+	return strings.ContainsAny(s, "\r\n")
+}
+
+func (c *Catalog) flipLogInjectionDiscovery() {
+	const flip = `
+		UPDATE vulnerabilities
+		SET status = 'discovered',
+		    discovered_at = CURRENT_TIMESTAMP
+		WHERE id = ? AND status = 'undiscovered'
+	`
+	if _, err := c.DB.Exec(flip, logInjectionTrackerID); err != nil {
+		log.Printf("log injection discover flip: %v", err)
+	}
 }
 
 func (c *Catalog) flipSearchDiscovery() {

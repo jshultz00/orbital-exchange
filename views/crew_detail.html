@@ -1,12 +1,19 @@
 {{define "content"}}
 <section class="panel">
     <p class="panel-title">Crew Member // Badge Roster</p>
-    <h1>{{.Crew.Username}}</h1>
-    <p class="readout muted">
-        Crew ID <span class="mono">#{{.Crew.ID}}</span> // Joined {{.Crew.CreatedAt}}.
-        {{if not .IsOwn}}<span class="amber">// VIEWING ANOTHER CREW MEMBER'S RECORD</span>{{end}}
-        {{if .Crew.IsAdmin}}<span class="green">// ADMIN PRIVILEGES</span>{{end}}
-    </p>
+    <div class="crew-header">
+        <div class="crew-avatar crew-avatar-lg">
+            {{if .Crew.AvatarInlineSVG}}{{.Crew.AvatarInlineSVG}}{{else}}<img src="{{.Crew.AvatarURL}}" alt="{{.Crew.Username}} avatar">{{end}}
+        </div>
+        <div>
+            <h1>{{.Crew.Username}}</h1>
+            <p class="readout muted">
+                Crew ID <span class="mono">#{{.Crew.ID}}</span> // Joined {{.Crew.CreatedAt}}.
+                {{if not .IsOwn}}<span class="amber">// VIEWING ANOTHER CREW MEMBER'S RECORD</span>{{end}}
+                {{if .Crew.IsAdmin}}<span class="green">// ADMIN PRIVILEGES</span>{{end}}
+            </p>
+        </div>
+    </div>
 
     <table class="cart-table mono">
         <tbody>
@@ -34,6 +41,7 @@
     </table>
     {{if .IsOwn}}
     <p class="readout muted">Your station key authenticates you to the manifest export API at <span class="mono">/manifest/export?key=&lt;your-key&gt;</span>.</p>
+    <p class="readout muted">Refresh your portrait at <a href="/avatar">/avatar</a>.</p>
     {{end}}
 </section>
 {{end}}

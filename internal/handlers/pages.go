@@ -22,6 +22,17 @@ func (p *Pages) Landing(w http.ResponseWriter, r *http.Request) {
 	render(w, p.Views, "landing", pageData(r, p.Session, "Bulletin"))
 }
 
+// Bridge renders the bridge operations hub: a single index of the logistics,
+// cargo, and clearance consoles (supply drop, cargo import/bundle, pre-auth,
+// patch channel, restricted dossier, shuttle pass) so they don't each need
+// their own top-level navbar entry.
+func (p *Pages) Bridge(w http.ResponseWriter, r *http.Request) {
+	if requireLogin(w, r, p.Session) == nil {
+		return
+	}
+	render(w, p.Views, "bridge_index", pageData(r, p.Session, "Bridge"))
+}
+
 // NotFound renders the styled 404 page. Registered as the mux "/" catch-all
 // in main, so any path that no more-specific pattern claims lands here.
 func (p *Pages) NotFound(w http.ResponseWriter, r *http.Request) {

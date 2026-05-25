@@ -3,9 +3,13 @@ package handlers
 import (
 	"database/sql"
 	"errors"
+	"html/template"
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/alexedwards/scs/v2"
 
@@ -14,11 +18,15 @@ import (
 
 // Crew serves individual crew member roster entries.
 //
-// Planted vuln a01-crew-roster-idor: the Detail handler looks up crew by ID
-// alone, with no check that the crew member is the session user. Any logged-in
-// crew member can guess sequential IDs and read another crew member's entry.
-// The IDOR detection flips the tracker row when the viewer is not the crew
-// member whose record is fetched.
+// Planted vulns surfaced here:
+//
+//   a01-crew-roster-idor: the Detail handler looks up crew by ID alone,
+//   with no check that the crew member is the session user.
+//
+//   a05-avatar-svg-xss: when the crew member's avatar is an SVG, Detail
+//   reads the file bytes from disk and hands them to the template as
+//   template.HTML so the renderer skips escaping. An attacker-supplied
+//   SVG with <script> executes in any viewer's browser.
 type Crew struct {
 	DB      *sql.DB
 	Views   *views.Views
@@ -30,12 +38,18 @@ const crewIDORTrackerID = "a01-crew-roster-idor"
 // CrewDetail is the full crew member record for the detail view.
 // StationKey is the API token used to authenticate against /manifest/export.
 // Showing it here without an ownership check is the planted IDOR surface.
+//
+// AvatarInlineSVG carries the raw bytes of the user's SVG avatar (if any) so
+// the template can drop them straight into the page. It is empty for non-SVG
+// avatars and for the default badge, which are served via <img>.
 type CrewDetail struct {
-	ID         int64
-	Username   string
-	IsAdmin    bool
-	StationKey string
-	CreatedAt  string
+	ID              int64
+	Username        string
+	IsAdmin         bool
+	StationKey      string
+	CreatedAt       string
+	AvatarURL       string
+	AvatarInlineSVG template.HTML
 }
 
 // Index renders /crew. Admins see the full roster; regular crew see only
@@ -50,7 +64,7 @@ func (c *Crew) Index(w http.ResponseWriter, r *http.Request) {
 	}
 
 	q := `
-		SELECT id, username, is_admin = 1,
+		SELECT id, username, is_admin = 1, avatar_path,
 		       strftime('%Y-%m-%d %H:%M', created_at)
 		FROM users
 		ORDER BY id ASC
@@ -58,7 +72,7 @@ func (c *Crew) Index(w http.ResponseWriter, r *http.Request) {
 	args := []any{}
 	if !user.IsAdmin {
 		q = `
-			SELECT id, username, is_admin = 1,
+			SELECT id, username, is_admin = 1, avatar_path,
 			       strftime('%Y-%m-%d %H:%M', created_at)
 			FROM users
 			WHERE id = ?
@@ -76,11 +90,13 @@ func (c *Crew) Index(w http.ResponseWriter, r *http.Request) {
 	var roster []CrewRow
 	for rows.Next() {
 		var row CrewRow
-		if err := rows.Scan(&row.ID, &row.Username, &row.IsAdmin, &row.CreatedAt); err != nil {
+		var avatarPath string
+		if err := rows.Scan(&row.ID, &row.Username, &row.IsAdmin, &avatarPath, &row.CreatedAt); err != nil {
 			log.Printf("crew index scan: %v", err)
 			http.Error(w, "internal error", http.StatusInternalServerError)
 			return
 		}
+		row.AvatarURL = avatarURLOrDefault(avatarPath)
 		roster = append(roster, row)
 	}
 
@@ -105,14 +121,16 @@ func (c *Crew) Detail(w http.ResponseWriter, r *http.Request) {
 	}
 
 	const q = `
-		SELECT id, username, is_admin = 1, station_key,
+		SELECT id, username, is_admin = 1, station_key, avatar_path,
 		       strftime('%Y-%m-%d %H:%M', created_at)
 		FROM users
 		WHERE id = ?
 	`
 	var detail CrewDetail
+	var avatarPath string
 	err = c.DB.QueryRow(q, id).Scan(
-		&detail.ID, &detail.Username, &detail.IsAdmin, &detail.StationKey, &detail.CreatedAt,
+		&detail.ID, &detail.Username, &detail.IsAdmin, &detail.StationKey,
+		&avatarPath, &detail.CreatedAt,
 	)
 	if errors.Is(err, sql.ErrNoRows) {
 		http.NotFound(w, r)
@@ -122,6 +140,15 @@ func (c *Crew) Detail(w http.ResponseWriter, r *http.Request) {
 		log.Printf("crew detail %d: %v", id, err)
 		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
+	}
+
+	detail.AvatarURL = avatarURLOrDefault(avatarPath)
+	// PLANTED VULN a05-avatar-svg-xss: SVG avatars are inlined directly into
+	// the page for "styling control". template.HTML marks the bytes as
+	// pre-escaped so html/template emits them verbatim — including any
+	// <script> tags the uploader smuggled in.
+	if svg, ok := readAvatarSVG(avatarPath); ok {
+		detail.AvatarInlineSVG = template.HTML(svg) //nolint:gosec // intentional XSS surface
 	}
 
 	// IDOR detection: flip the tracker when a regular (non-admin) crew member
@@ -143,4 +170,35 @@ func (c *Crew) Detail(w http.ResponseWriter, r *http.Request) {
 	data["Crew"] = detail
 	data["IsOwn"] = detail.ID == user.ID
 	render(w, c.Views, "crew_detail", data)
+}
+
+// avatarURLOrDefault maps a users.avatar_path value to a renderable URL.
+// Empty paths fall back to the bundled default crew-badge SVG.
+func avatarURLOrDefault(path string) string {
+	if path == "" {
+		return DefaultAvatarURL
+	}
+	return path
+}
+
+// readAvatarSVG reads the on-disk SVG that backs avatar_path and returns its
+// raw bytes for inline rendering. Returns (_, false) for empty paths, non-SVG
+// avatars, or read errors — callers fall back to <img> rendering of the URL.
+func readAvatarSVG(avatarPath string) ([]byte, bool) {
+	if avatarPath == "" {
+		return nil, false
+	}
+	if !strings.EqualFold(filepath.Ext(avatarPath), ".svg") {
+		return nil, false
+	}
+	// avatarPath is a served URL like "/static/avatars/foo.svg". Map it back
+	// to the on-disk file under public/. Use only the basename to keep the
+	// disk read scoped to the drop zone — the planted traversal is at write
+	// time, not here at read time.
+	diskPath := filepath.Join(avatarDropZone, filepath.Base(avatarPath))
+	body, err := os.ReadFile(diskPath)
+	if err != nil {
+		return nil, false
+	}
+	return body, true
 }

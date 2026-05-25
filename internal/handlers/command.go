@@ -40,6 +40,7 @@ type CrewRow struct {
 	Username  string
 	IsAdmin   bool
 	CreatedAt string
+	AvatarURL string
 }
 
 // Dashboard renders /command — placeholder Station Command home.

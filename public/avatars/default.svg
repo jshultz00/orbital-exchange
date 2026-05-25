@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Default crew badge">
+    <defs>
+        <linearGradient id="oe-badge-bg" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#0f1830"/>
+            <stop offset="1" stop-color="#06091a"/>
+        </linearGradient>
+    </defs>
+    <rect x="2" y="2" width="60" height="60" rx="6" ry="6" fill="url(#oe-badge-bg)" stroke="#1f2c52" stroke-width="1.5"/>
+    <circle cx="32" cy="26" r="9" fill="none" stroke="#5fd9ff" stroke-width="1.5" opacity="0.85"/>
+    <path d="M16 52 C 16 42, 26 38, 32 38 C 38 38, 48 42, 48 52 L 48 56 L 16 56 Z" fill="none" stroke="#5fd9ff" stroke-width="1.5" opacity="0.85"/>
+    <text x="32" y="14" text-anchor="middle" font-family="ui-monospace, Menlo, Consolas, monospace" font-size="6" fill="#ffb84d" letter-spacing="0.5">OE-CREW</text>
+</svg>

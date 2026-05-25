@@ -9,6 +9,7 @@
         <thead>
             <tr>
                 <th class="num">ID</th>
+                <th></th>
                 <th>Callsign</th>
                 <th>Rank</th>
                 <th>Boarded</th>
@@ -19,6 +20,7 @@
             {{range .Roster}}
             <tr>
                 <td class="num mono">#{{.ID}}</td>
+                <td><span class="crew-avatar crew-avatar-sm"><img src="{{if .AvatarURL}}{{.AvatarURL}}{{else}}/static/avatars/default.svg{{end}}" alt=""></span></td>
                 <td>{{.Username}}</td>
                 <td>{{if .IsAdmin}}<span class="green">COMMAND</span>{{else}}<span class="muted">CREW</span>{{end}}</td>
                 <td class="muted">{{.CreatedAt}}</td>

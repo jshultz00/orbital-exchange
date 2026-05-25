@@ -54,6 +54,9 @@ func main() {
 	//                         and is readable via r.PathValue("slug") in the handler.
 	pages := &handlers.Pages{DB: conn, Views: v, Session: sess}
 	mux.HandleFunc("GET /{$}", pages.Landing)
+	// Bridge ops hub — links out to all /bridge/* consoles + shuttle pass so
+	// they don't each clutter the top-level navbar.
+	mux.HandleFunc("GET /bridge", pages.Bridge)
 	// Catch-all: any path that no more-specific pattern claims renders the
 	// styled 404. The static handler ("/static/") and concrete routes are
 	// all more specific than "/", so they still win.

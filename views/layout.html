@@ -20,24 +20,22 @@
         <nav class="site-nav">
             <a href="/">BULLETIN</a>
             <a href="/catalog">CATALOG</a>
-            <a href="/cart">CART</a>
-            {{if .User}}<a href="/manifest">MANIFEST</a>{{end}}
-            {{if .User}}<a href="/bridge/supply-drop">SUPPLY DROP</a>{{end}}
-            {{if .User}}<a href="/bridge/cargo-import">CARGO IMPORT</a>{{end}}
-            {{if .User}}<a href="/bridge/cargo-bundle">CARGO BUNDLE</a>{{end}}
-            {{if .User}}<a href="/bridge/cargo-preauth">PRE-AUTH</a>{{end}}
-            {{if .User}}<a href="/bridge/patch-channel">PATCH CHANNEL</a>{{end}}
-            {{if .User}}<a href="/bridge/restricted-dossier">INTEL DOSSIER</a>{{end}}
-            {{if .User}}<a href="/shuttle">SHUTTLE PASS</a>{{end}}
-            {{if .User}}<a href="/crew">CREW ROSTER</a>{{end}}
-            {{if .User}}<a href="/avatar">AVATAR</a>{{end}}
+            {{if .User}}<a href="/cart">CART</a>{{end}}
+            {{if .User}}<a href="/bridge">BRIDGE</a>{{end}}
+            {{if .User}}<a href="/crew">CREW</a>{{end}}
             <a href="/comms">COMMS LOG</a>
             <a href="/tracker">TRACKER</a>
-            {{if and .User .User.IsAdmin}}<a href="/command" class="nav-admin">COMMAND</a>{{end}}
             {{if .User}}
-                <span class="nav-user">
-                    <span class="mono">[{{.User.Username}}]</span>
-                    <form method="POST" action="/logout"><button type="submit">SIGN OUT</button></form>
+                <span class="nav-user-menu" tabindex="0">
+                    <span class="nav-user-toggle mono">[{{.User.Username}}] <span class="nav-user-caret" aria-hidden="true">&#9662;</span></span>
+                    <ul class="nav-user-dropdown" role="menu">
+                        <li><a href="/manifest">MANIFEST</a></li>
+                        <li><a href="/avatar">AVATAR</a></li>
+                        {{if .User.IsAdmin}}<li><a href="/command" class="nav-admin">COMMAND</a></li>{{end}}
+                        <li>
+                            <form method="POST" action="/logout"><button type="submit">SIGN OUT</button></form>
+                        </li>
+                    </ul>
                 </span>
             {{else}}
                 <a href="/login" class="nav-auth">SIGN IN</a>

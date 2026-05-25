@@ -69,6 +69,16 @@
     "is_planted": true,
     "cwe": { "id": "CWE-918", "name": "Server-Side Request Forgery (SSRF)" }
   },
+  {
+    "id": "a01-avatar-path-traversal",
+    "category_id": "a01",
+    "title": "Escape the avatar drop zone",
+    "hint": "Avatar uploads are saved using the filename the client sends. The drop zone is one directory — but what does the filesystem think when the name has a few extra dots and slashes?",
+    "difficulty": "medium",
+    "sort_order": 70,
+    "is_planted": true,
+    "cwe": { "id": "CWE-22", "name": "Improper Limitation of a Pathname to a Restricted Directory ('Path Traversal')" }
+  },
 
   {
     "id": "a02-diagnostics-panel-exposed",
@@ -190,6 +200,16 @@
     "hint": "Comms entries are shown to other crew. When the renderer doesn't escape, what they see is whatever you wrote.",
     "difficulty": "medium",
     "sort_order": 30,
+    "is_planted": true,
+    "cwe": { "id": "CWE-79", "name": "Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')" }
+  },
+  {
+    "id": "a05-avatar-svg-xss",
+    "category_id": "a05",
+    "title": "Smuggle script through a crew avatar",
+    "hint": "Crew profile pages render avatars inline for styling control. Some image formats are also documents — and documents can carry more than pixels.",
+    "difficulty": "medium",
+    "sort_order": 40,
     "is_planted": true,
     "cwe": { "id": "CWE-79", "name": "Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')" }
   },

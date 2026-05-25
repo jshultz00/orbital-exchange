@@ -1,0 +1,38 @@
+{{define "content"}}
+<section class="panel">
+    <p class="panel-title">Bridge Operations // Station Logistics</p>
+    <h1>Bridge</h1>
+    <p class="readout muted">Logistics, cargo, and clearance terminals. Pick a console to operate.</p>
+
+    <div class="bridge-grid">
+        <a class="bridge-card" href="/bridge/supply-drop">
+            <p class="bridge-card-title">Supply Drop</p>
+            <p class="readout">Claim your weekly ration allocation.</p>
+        </a>
+        <a class="bridge-card" href="/bridge/cargo-import">
+            <p class="bridge-card-title">Cargo Import</p>
+            <p class="readout">Upload a manifest CSV from an inbound shuttle.</p>
+        </a>
+        <a class="bridge-card" href="/bridge/cargo-bundle">
+            <p class="bridge-card-title">Cargo Bundle</p>
+            <p class="readout">Claim a pre-packed cargo bundle.</p>
+        </a>
+        <a class="bridge-card" href="/bridge/cargo-preauth">
+            <p class="bridge-card-title">Pre-Auth Packets</p>
+            <p class="readout">Generate or redeem pre-authorized cargo tokens.</p>
+        </a>
+        <a class="bridge-card" href="/bridge/patch-channel">
+            <p class="bridge-card-title">Patch Channel</p>
+            <p class="readout">Apply station software patches.</p>
+        </a>
+        <a class="bridge-card" href="/bridge/restricted-dossier">
+            <p class="bridge-card-title">Intel Dossier</p>
+            <p class="readout">Restricted briefings (clearance required).</p>
+        </a>
+        <a class="bridge-card" href="/shuttle">
+            <p class="bridge-card-title">Shuttle Pass</p>
+            <p class="readout">Verify your shuttle pass JWT.</p>
+        </a>
+    </div>
+</section>
+{{end}}

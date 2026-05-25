@@ -129,10 +129,10 @@ These are the normal app and maintenance surfaces. Some challenge-only behavior 
 
 `/tracker` is the registry every future spec appends to. The tracker shows only planted rows and keeps each row's hint hidden until the user chooses **Reveal hint**.
 
-The app ships with all **30 vulnerabilities fully planted** — 3 per OWASP 2025 category, mixed easy/medium/hard:
+The app ships with **36 vulnerabilities fully planted**, mixed easy/medium/hard:
 
 - **10 OWASP 2025 categories** in `categories` table.
-- **30 vulnerability slots** in `vulnerabilities` table — all marked `is_planted: true` with live exploit surfaces wired into handlers.
+- **36 vulnerability slots** in `vulnerabilities` table — all marked `is_planted: true` with live exploit surfaces wired into handlers.
 
 A full write-up for each challenge (what it is, how it works here, real-world context, detection, and fix) is in [docs/vulnerabilities.md](docs/vulnerabilities.md).
 
@@ -176,6 +176,6 @@ Module path: `github.com/jshultz00/orbital-exchange`.
 
 ## Status
 
-All 30 vulnerabilities are planted and live. Each handler intentionally deviates from the defensive baseline and references the tracker row it satisfies. Every planted challenge flips its tracker row to `discovered` when its hidden success condition fires.
+All 36 vulnerabilities are planted and live. Each handler intentionally deviates from the defensive baseline and references the tracker row it satisfies. Every planted challenge flips its tracker row to `discovered` when its hidden success condition fires.
 
 The README avoids listing planted surfaces and solutions; use the app and tracker hints for practice, or consult [docs/vulnerabilities.md](docs/vulnerabilities.md) for the full reference.

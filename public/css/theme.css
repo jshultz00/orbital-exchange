@@ -276,6 +276,132 @@ input:focus, textarea:focus, select:focus {
 }
 .nav-user button:hover { color: var(--cyan); border-bottom-color: var(--cyan-dim); }
 
+/* Push account menu / sign-in links to the right edge of the nav. */
+.site-nav .nav-user-menu,
+.site-nav .nav-auth:first-of-type { margin-left: auto; }
+.site-nav .nav-auth + .nav-auth { margin-left: 0; }
+
+/* Account dropdown — CSS-only hover/focus-within reveal, no JS. */
+.nav-user-menu {
+    position: relative;
+    display: inline-block;
+    outline: none;
+    cursor: pointer;
+}
+.nav-user-toggle {
+    color: var(--cyan);
+    border-bottom: 1px solid transparent;
+    padding: 0.25rem 0;
+}
+.nav-user-menu:hover .nav-user-toggle,
+.nav-user-menu:focus-within .nav-user-toggle { border-bottom-color: var(--cyan-dim); }
+.nav-user-caret { color: var(--muted); font-size: 0.75rem; }
+
+.nav-user-dropdown {
+    position: absolute;
+    right: 0;
+    top: 100%;
+    margin: 0.35rem 0 0;
+    padding: 0.35rem 0;
+    list-style: none;
+    min-width: 11rem;
+    background: var(--panel);
+    border: 1px solid var(--panel-edge);
+    border-radius: var(--radius);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+    display: none;
+    z-index: 10;
+}
+.nav-user-menu:hover .nav-user-dropdown,
+.nav-user-menu:focus-within .nav-user-dropdown { display: block; }
+
+.nav-user-dropdown li { margin: 0; }
+.nav-user-dropdown a,
+.nav-user-dropdown button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 0.45rem 0.9rem;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    background: transparent;
+    border: 0;
+    border-bottom: 0;
+    cursor: pointer;
+}
+.nav-user-dropdown a:hover,
+.nav-user-dropdown button:hover { color: var(--cyan); background: rgba(95, 217, 255, 0.06); }
+.nav-user-dropdown .nav-admin { color: var(--amber); }
+.nav-user-dropdown .nav-admin:hover { color: var(--amber); background: rgba(255, 184, 77, 0.08); }
+.nav-user-dropdown form { display: block; margin: 0; }
+
+/* Bridge ops hub — card grid linking to each logistics console. */
+.bridge-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    gap: 0.9rem;
+    margin-top: 1rem;
+}
+.bridge-card {
+    display: block;
+    padding: 1rem 1.1rem;
+    background: rgba(15, 24, 48, 0.6);
+    border: 1px solid var(--panel-edge);
+    border-radius: var(--radius);
+    color: var(--text);
+    text-decoration: none;
+    transition: border-color 120ms, background 120ms, transform 120ms;
+}
+.bridge-card:hover {
+    border-color: var(--cyan-dim);
+    background: rgba(95, 217, 255, 0.05);
+    color: var(--text);
+}
+.bridge-card-title {
+    margin: 0 0 0.35rem;
+    font-family: var(--mono);
+    font-size: 0.95rem;
+    letter-spacing: 0.06em;
+    color: var(--cyan);
+    text-transform: uppercase;
+}
+.bridge-card .readout { margin: 0; }
+
+/* ---------- AVATARS ---------- */
+.crew-avatar {
+    display: inline-block;
+    overflow: hidden;
+    border: 1px solid var(--panel-edge);
+    border-radius: var(--radius);
+    background: rgba(15, 24, 48, 0.6);
+    line-height: 0;
+    vertical-align: middle;
+    flex-shrink: 0;
+}
+.crew-avatar img,
+.crew-avatar svg { display: block; width: 100%; height: 100%; }
+.crew-avatar-sm { width: 2rem; height: 2rem; }
+.crew-avatar-lg { width: 5rem; height: 5rem; }
+
+.crew-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+}
+.crew-header h1 { margin: 0 0 0.25rem; }
+
+.avatar-uplink {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 1rem 0 1.5rem;
+}
+.avatar-uplink-meta .readout { margin: 0; }
+
 .flash {
     border-left: 3px solid var(--cyan);
     background: rgba(95, 217, 255, 0.06);

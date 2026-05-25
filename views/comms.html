@@ -41,7 +41,7 @@
                 <span class="mono amber">{{.Author}}</span>
                 {{if .FromCrew}}<span class="pill pill-discovered">CREW</span>{{end}}
                 <time class="mono muted">{{.CreatedAt}}</time>
-                {{if $.User.IsAdmin}}
+                {{if and $.User $.User.IsAdmin}}
                 <form method="POST" action="/comms/{{.ID}}/delete" style="display:inline; margin-left:0.5rem;">
                     <button class="btn btn-ghost" type="submit" title="Command-only: delete this transmission">Purge</button>
                 </form>

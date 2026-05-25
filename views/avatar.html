@@ -4,6 +4,16 @@
     <h1>Refresh your station portrait.</h1>
     <p class="readout muted">Profile art is normalized by the salvage-era image bridge before display on internal terminals.</p>
 
+    <div class="avatar-uplink">
+        <div class="crew-avatar crew-avatar-lg">
+            <img src="{{.CurrentAvatarURL}}" alt="Current avatar">
+        </div>
+        <div class="avatar-uplink-meta">
+            <p class="readout"><strong>Current portrait.</strong> Uploading a new packet replaces it.</p>
+            <p class="readout muted">Default badge is the bundled crew silhouette until you upload your own.</p>
+        </div>
+    </div>
+
     {{if .Error}}<p class="auth-error mono">! {{.Error}}</p>{{end}}
 
     <form class="auth-form" method="POST" action="/avatar" enctype="multipart/form-data">

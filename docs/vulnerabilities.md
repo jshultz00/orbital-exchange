@@ -274,6 +274,57 @@ handler level before issuing the request.
 
 ---
 
+### a01-avatar-path-traversal · Escape the avatar drop zone
+
+**CWE-22 — Improper Limitation of a Pathname to a Restricted Directory ('Path Traversal')**
+
+**What it is.** A path traversal vulnerability where user-controlled input is
+concatenated with a base directory path, allowing an attacker to write files
+outside the intended directory by embedding `../` sequences in the filename.
+
+**How it works here.** `Avatar.Upload` in
+[avatar.go](../internal/handlers/avatar.go) uses `rawDispositionFilename` to
+read the `filename` parameter directly from the raw MIME `Content-Disposition`
+header, bypassing the Go standard library's `multipart.FileHeader.Filename`
+field, which already calls `filepath.Base()` to strip path components per
+RFC 7578. The raw value (e.g. `../css/theme.css`) is then passed straight to
+`filepath.Join(avatarDropZone, rawName)` and written with `os.WriteFile`. A
+filename of `../css/theme.css` writes to `public/css/theme.css`, overwriting
+the application's stylesheet.
+
+**Why this matters.** Path traversal on a file-write path is critical: an
+attacker can overwrite application code, configuration, served static assets,
+or (in more permissive deployments) cron jobs and init scripts. It is trivially
+exploitable via any HTTP proxy that lets the tester edit the raw request.
+
+**Where it commonly appears.** File upload features that use the
+client-supplied filename verbatim, archive extraction endpoints (zip-slip),
+and any code that constructs a filesystem path from user input without
+canonicalizing it first.
+
+**How to find it.** Intercept the avatar upload request in a proxy (Burp,
+mitmproxy). Edit the `Content-Disposition` header's `filename` parameter to
+`../css/theme.css` or `../../etc/cron.d/backdoor`. Submit the request. Check
+whether the file appears outside the intended upload directory.
+
+**Fix for this implementation.** After constructing `storedPath`, verify that
+the resolved absolute path still lives inside the drop zone before writing.
+The check is already implemented for tracker-detection purposes — it just needs
+to become a hard reject instead of a silent flip:
+
+```go
+if escaped, _ := pathEscapedDropZone(storedPath); escaped {
+    http.Error(w, "invalid filename", http.StatusBadRequest)
+    return
+}
+```
+
+More broadly, never trust the client-supplied filename for the on-disk path.
+Assign a server-generated name (e.g. `fmt.Sprintf("%d-%s", userID, uuid)`) and
+store the original name only as metadata.
+
+---
+
 ## A02 — Security Misconfiguration
 
 ### a02-diagnostics-panel-exposed · Pry open the diagnostics panel
@@ -755,6 +806,55 @@ e.BodyText = bodyStr
 Then in the template use `{{.BodyText}}` (auto-escaped) instead of
 `{{.Body}}`. If rich text is genuinely needed, use a strict allowlist sanitizer
 (e.g., bluemonday) before casting to `template.HTML`.
+
+---
+
+### a05-avatar-svg-xss · Smuggle script through a crew avatar
+
+**CWE-79 — Improper Neutralization of Input During Web Page Generation (Cross-Site Scripting)**
+
+**What it is.** A stored XSS vulnerability where a malicious SVG file uploaded
+as a user avatar is later inlined verbatim into the crew profile page, causing
+any embedded `<script>` block to execute in every viewer's browser.
+
+**How it works here.** `Avatar.Upload` in
+[avatar.go](../internal/handlers/avatar.go) accepts SVG files and writes them
+to disk. `Crew.Detail` in [crew.go](../internal/handlers/crew.go) calls
+`readAvatarSVG` for any crew member whose `avatar_path` ends in `.svg`,
+reads the raw file bytes, and stores them in a `template.HTML` field —
+bypassing Go's `html/template` auto-escaping. The crew detail template at
+[views/crew_detail.html](../views/crew_detail.html) renders the value with
+`{{.Crew.AvatarInlineSVG}}`, inserting the SVG markup (and any embedded
+`<script>` tags) directly into the HTML of every user who views that crew
+member's profile page.
+
+**Why this matters.** Stored XSS persists on the server and fires for every
+visitor of the affected page without any further attacker interaction. From a
+`<script>` block in an SVG avatar, an attacker can steal session cookies,
+redirect victims to phishing pages, perform actions on behalf of the viewer,
+or chain into further privilege escalation.
+
+**Where it commonly appears.** Any feature that (a) accepts SVG uploads and
+(b) inlines the SVG into HTML for styling or display — common in profile
+photo, logo, and icon upload features where engineers inline SVGs to allow CSS
+`currentColor` theming. SVGs are often treated as images rather than active
+markup, leading to missed sanitization.
+
+**How to find it.** Upload an SVG avatar containing `<script>alert(document.cookie)</script>`.
+Navigate to `/crew/{id}` for that account, or ask another user to visit it.
+Observe whether the script executes. Check whether the profile page source
+contains raw `<script>` markup instead of escaped HTML entities.
+
+**Fix for this implementation.** Two complementary fixes:
+
+1. **At upload time** — reject SVGs containing `<script>` tags, or strip
+   script blocks and event-handler attributes with a sanitizer like
+   `microcosm-cc/bluemonday` before writing to disk.
+2. **At render time** — do not inline arbitrary SVG markup as `template.HTML`.
+   Instead, serve SVG avatars as a static file (the `<img src="...">` path
+   already in the template) and remove the `AvatarInlineSVG` bypass entirely.
+   CSS `currentColor` theming can be preserved with CSS custom properties set
+   on a wrapping element without needing raw inline markup.
 
 ---
 
